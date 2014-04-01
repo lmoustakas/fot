@@ -1,3 +1,39 @@
 mcmc inference and other things
 * straight data stream light curve 
 * time delay
+
+Guide of python scripts
+
+Source files: these contain functions used in simulations
+
+  drw_lightcurve.py
+    It contains the functions that generate a light curve given quasar parameters sigma, tau, and b.
+
+  delayed_lightcurve.py
+    The is a source file. It takes the observation schedule and image delay to produce two delayed lightcurves.  I still have to add the magnitude offset.
+
+  qsr_ll.py
+    This is a source file. This contains the hojjati and kelly likelihood functions for a single quasar light curve.
+
+  hubble_observation_schedule.py
+    This is a source file. It contains a function that provides a randmoized hubble-like schedule. It is not currently being used in any of the files but that will change.
+
+
+Tests and examples: these contain example applications and tests of the functions in the source files.
+
+  test_drw_lightcurve.py
+    This function tests the drw_lightcurve.py There are three tests. You can select which one to run at the bottom of the script.
+
+  sim_lightcurve_examples.py
+    This produces examples of simulated light curves using drw_lightcurve.py. 
+
+  lightcurve_ll_plots.py
+    This is a test function of qsr_ll.py It produces plots of the likelihood function for sigma and tau parameters for a simulated lightcurve using drw_lightcurve.py. This will be updated to produce triangle plots.
+
+  test_delayed_lightcurve.py
+    Provide examples of the functions in delayed_lightcurve.py.
+
+
+Coming soon.
+  Likelihood functions for delayed light curves.
+  Emcee tests for reconstruction of light curve delays and parameters.
