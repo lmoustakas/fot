@@ -115,8 +115,8 @@ max_val=0.
 for j in range(0,Nsig):
   ll=[]
   for i in range(0,Ntau):
-    val = hojjati_ll(t, X_data, err, sigma_array[j], tau_array[i], 0.)
-    #val = kelly_ll(t, X_data, err, sigma_array[j], tau_array[i], 0.)
+    #val = hojjati_ll(t, X_data, err, sigma_array[j], tau_array[i], 0.)
+    val = kelly_ll(t, X_data, err, sigma_array[j], tau_array[i], 0.)
     ll.append(val)
     Z[i][j]=val
   max_val=max(max_val,max(ll))
@@ -148,8 +148,8 @@ ylim(min(log10(sigma_array)),max(log10(sigma_array)))
 xlim(min(log10(tau_array)),max(log10(tau_array)))
 xlabel(r'$\log_{10}(\tau/$days$)$')
 ylabel(r'$\log_{10}(\sigma/$arb. u.$)$')
-title('Hojjati Likelihood\nfor One Quasar Light Curve')
-#title('Kelly Likelihood\nfor One Quasar Light Curve')
+#title('Hojjati Likelihood\nfor One Quasar Light Curve')
+title('Kelly Likelihood\nfor One Quasar Light Curve')
 #clabel(CS, inline=1, fontsize=10)
 #title('Simplest default with labels')
 
