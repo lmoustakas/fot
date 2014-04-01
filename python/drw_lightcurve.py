@@ -9,6 +9,7 @@ def X_int(delta_t,X_0, tau, b, sigma, Nsteps):
   num_steps=10*int(1+delta_t/tau)
   if(num_steps>Nsteps):
     num_steps=Nsteps
+    print 'X_int WARNING: accurate statistics requires Nsteps>1000 steps'
   ds = delta_t/Nsteps
   s=arange(Nsteps, dtype=float64)*ds
   dB=array([random.gauss(0.,sqrt(ds)) for _ in xrange(Nsteps)])
@@ -20,13 +21,13 @@ def X_int(delta_t,X_0, tau, b, sigma, Nsteps):
   
 def drw_lightcurve(time_array, X_0, tau, sigma, b, redshift, Nsteps): 
   # convert parameters to rest frame
-  tau*=1./(1.+redshift)
-  sigma*=sqrt(1.+redshift)
-  b*=(1.+redshift)
-  time_array*=1./(1.+redshift)
+  tau_rest=tau*1./(1.+redshift)
+  sigma_rest=sigma*sqrt(1.+redshift)
+  b_rest=b*(1.+redshift)
+  t_rest=time_array*1./(1.+redshift)
   X=[X_0]
   for k in range(1,len(time_array)):
-    X.append(X_int(time_array[k]-time_array[k-1], X[k-1], tau, b, sigma, Nsteps))
+    X.append(X_int(t_rest[k]-t_rest[k-1], X[k-1], tau_rest, b_rest, sigma_rest, Nsteps))
   X=array(X)
   return X 
 #This follows the stochastic differential equation 1 of Kelley 2009, arXiv:0903.5315v1
