@@ -2,7 +2,7 @@
 from astropy.io import ascii
 import matplotlib.pyplot as plt
 
-data=ascii.read('../data/RXJ1131_Tewes2013.rdb',data_start=2)
+data=ascii.read('../data/cosmograil/RXJ1131_Tewes2013.rdb',data_start=2)
 x=data['mhjd']
 y=data['mag_A']
 plt.scatter(x,y,c='r')
