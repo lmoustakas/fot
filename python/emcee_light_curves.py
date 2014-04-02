@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
 from pylab import *
 import numpy as np
 import scipy.optimize as op
@@ -29,9 +30,14 @@ rcParams['lines.markeredgewidth'] = 1
 
 def lnprior(theta):
   sigma, tau, b = theta
+  if 0.01<sigma<10.0 and 0.1<tau<5000 and 5<b<15:
+        return 0.0
+  return -np.inf
+'''
   if 1.e-10<sigma<1.e10 and 1.e-10<tau<1.e10 and -1000.<b<1000.:
         return 0.0
   return -np.inf
+''' 
 
 #test lnprior
 '''
@@ -50,7 +56,7 @@ def lnprob(theta, t, lc, err):
 #R = 1./(1.1*M_BH)*121 # in 100 R_suns
 
 z = 0.658 # redshift
-b=0.0
+b=10.0
 tau=121.
 sigma=0.56 #for RX J1131 at 1000 A
 
@@ -85,6 +91,8 @@ show()
 exit()
 '''
 
+'''
+# commenting out the sanity check code block 
 # NUMERICALLY OPTIMIZE THE SOLUTION
 print 'NUMERICAL OPTIMIZATION OF THE SOLUTION'
 nll = lambda *args: -kelly_ll(*args)
@@ -98,6 +106,7 @@ print 'sigma=%1.2e\tsigma_ml=%1.2e'%((sigma),sigma_ml)
 print 'tau=%1.2e\ttau_ml=%1.2e'%((tau),tau_ml)
 print 'b=%1.2e\tb_ml=%1.2e'%(b,b_ml)
 #exit()
+'''
 
 #RUN EMCEE
 ndim, nwalkers = 3, 100
