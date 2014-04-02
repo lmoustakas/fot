@@ -5,12 +5,12 @@ from drw_lightcurve import X_int
 from drw_lightcurve import drw_lightcurve
 #import time
 
-rcParams['font.size']=14
-rcParams['legend.fontsize']=14
+rcParams['font.size']=12
+rcParams['legend.fontsize']=12
 rcParams['axes.formatter.limits']=-4,4
 rcParams['figure.facecolor'] = 'white'
-rcParams['figure.subplot.hspace']=0.5
-rcParams['figure.subplot.wspace']=0.3
+rcParams['figure.subplot.hspace']=0.9
+rcParams['figure.subplot.wspace']=0.8
 rcParams['figure.subplot.left']=0.15
 rcParams['figure.subplot.right']=0.9
 rcParams['figure.subplot.top']=0.9
@@ -252,8 +252,13 @@ def check_redshift_dependence():
     n=510+i
     subplot(n)
     plot(t,X)
+    xlabel('Observer Time, days')
+    ylabel('Flux, arb. u.')
+    
+    suptitle(r'b=%1.2f,$\tau$=%1.2f, $\sigma$=%1.2f, $\Delta t$=%1.2f'%(b,tau,sigma, delta_t), fontsize=14)
+    title(r'z=%1.1f'%(redshift_array[i]))
     figure(2)
-    n=510+i
+    n=511+i
     subplot(n)
     plot(t[0:len(t)-1],dX)
     figure(3)
@@ -270,6 +275,6 @@ def check_redshift_dependence():
   
 
 #SELECT WHICH DEPENDENCE YOU WANT TO TEST
-#check_sigma_dependence()
+check_sigma_dependence()
 #check_tau_dependence()
-check_redshift_dependence()
+#check_redshift_dependence()
