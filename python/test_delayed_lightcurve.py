@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from pylab import *
-from delayed_lightcurve import *
+from delayed_lightcurve import delayed_lightcurve
+from hubble_observation_schedule import hubble_obs_sched
 import random
 
 rcParams['font.size']=14
@@ -20,19 +21,18 @@ rcParams['lines.linewidth'] = 1
 rcParams['lines.markeredgewidth'] = 1
 
 
-#t1=arange(random.gauss(1.,0.1))
-N=150
 
-#time_array=arange(0.,100., 2.)
-time_array=cumsum(array([random.gauss(1.,0.5) for _ in xrange(N)]))
+delay=1.5
+delta_mag=1.
 
-delay=3.
-delta_mag=0.
-tau=121
+tau=121.
 sigma=0.56
-b=0.
+avg_mag=18.5
+redshift = 0.658 # redshift
+Nsteps=1000
 
-lc1,lc2=delayed_lightcurve(time_array, delay, delta_mag, tau, b, sigma, 1000)
+time_array=hubble_obs_sched(80)
+lc1,lc2=delayed_lightcurve(time_array, delay, delta_mag, redshift,  tau, avg_mag, sigma, Nsteps)
 
 #figure(1)
 #plot(time_array,'.')
@@ -48,7 +48,7 @@ ylabel('flux, arb. u.')
 xlabel('time, days')
 subplot(212)
 plot(time_array,lc1,'b.-', label='light curve 1')
-plot(time_array+delay,lc2,'r.-', label='delay shifted\nlight curve 2')
+plot(time_array-delay,lc2-delta_mag,'r.-', label='delay shifted\nlight curve 2')
 legend(loc=1)
 ylabel('flux, arb. u.')
 xlabel('time, days')
