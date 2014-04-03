@@ -29,7 +29,7 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
     #print i,i-1, x[i-1], len(x), len(x_star)
     a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
     Omega.append(Omega[0]*(1-a[i]**2) + a[i]**2*Omega[i-1]*(1.-Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)))
-    x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-1]**2)*(x_star[i-2]-x_hat[i-1]))
+    x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
     #ll += -(x_hat[i] - x_star[i-1])**2/(Omega[i]+ph_err_array[i]**2) - np.log(2*np.pi*(Omega[i]+ph_err_array[i]**2))
     ll += -(x_hat[i] - x_star[i-1])**2/(Omega[i]+ph_err_array[i-1]**2) - np.log(2*np.pi*(Omega[i]+ph_err_array[i-1]**2))
   return ll
