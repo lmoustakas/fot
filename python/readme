@@ -35,7 +35,7 @@ Tests and examples: these contain example applications and tests of the function
   test_delayed_lightcurve.py
     Provide examples of the functions in delayed_lightcurve.py.
 
+  emcee_delays.py
+    emcee reconstruction of delays, magnitude offsets, and light curve parameters.
 
-Coming soon.
-  Likelihood functions for delayed light curves.
-  Emcee tests for reconstruction of light curve delays and parameters.
+
