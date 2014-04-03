@@ -29,8 +29,8 @@ rcParams['lines.markeredgewidth'] = 1
 # DEFINE THE LIKELIHOOD FUNCTION
 
 def lnprior(theta):
-  sigma, tau, b = theta
-  if 0.01<sigma<10.0 and 0.1<tau<5000 and 5<b<15:
+  sigma, tau, avg_mag = theta
+  if 0.01<sigma<10.0 and 10.<tau<800 and -100<avg_mag<100:
         return 0.0
   return -np.inf
 '''
@@ -56,17 +56,17 @@ def lnprob(theta, t, lc, err):
 #R = 1./(1.1*M_BH)*121 # in 100 R_suns
 
 z = 0.658 # redshift
-b=10.0
+avg_mag=19.5
 tau=121.
 sigma=0.56 #for RX J1131 at 1000 A
 
-X_0=b*tau #initial condition of light curve
+X_0=avg_mag #initial condition of light curve
 print 'tau',tau
 Nsteps=1000
 Nsamples=1000
 
 t=hubble_obs_sched(80)
-X = drw_lightcurve(t, X_0, tau, sigma, b, z, Nsteps)
+X = drw_lightcurve(t, X_0, tau, sigma, avg_mag, z, Nsteps)
 error=0.02
 err=array([random.gauss(0.,error) for _ in xrange(len(X))])
 X_data=X+err
@@ -112,7 +112,7 @@ print 'b=%1.2e\tb_ml=%1.2e'%(b,b_ml)
 ndim, nwalkers = 3, 100
 #ndim, nwalkers = 3, 10
 print 'pos'
-true_vals=[sigma, tau, b]
+true_vals=[sigma, tau, avg_mag]
 #print 1e-4*np.random.randn(ndim)
 pos = [true_vals + 1e-3*np.random.randn(ndim) for i in range(nwalkers)]
 #print pos
@@ -136,19 +136,19 @@ print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_frac
 #exit()
 #PROBLEM MUST BE HERE!
 #samples[:, 2] = np.exp(samples[:, 2])
-mc_sigma, mc_tau, mc_b = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
 
 print 'Errors based on 16th, 50th, and 84th percentile'
-print 'Param \tTrue\t\tMC_rec\terr_up\terr_low\tdiff'
-print 'sig\t%1.2e\t%1.2e\t+%1.2e\t-%1.2e\t%1.2e'%(sigma, mc_sigma[0], mc_sigma[1], mc_sigma[2],mc_sigma[0]-sigma)
-print 'tau\t%1.2e\t%1.2e\t+%1.2e\t-%1.2e\t%1.2e'%(tau, mc_tau[0], mc_tau[1], mc_tau[2],mc_tau[0]-tau)
-print 'b     \t%1.2e\t%1.2e\t+%1.2e\t-%1.2e\t%1.2e'%(b, mc_b[0], mc_b[1], mc_b[2],mc_b[0]-b)
+print 'Param   \tTrue\t\tMC_rec\terr_up\terr_low\tdiff'
+print 'sig     \t%1.2e\t%1.2e\t+%1.2e\t-%1.2e\t%1.2e'%(sigma, mc_sigma[0], mc_sigma[1], mc_sigma[2],mc_sigma[0]-sigma)
+print 'tau     \t%1.2e\t%1.2e\t+%1.2e\t-%1.2e\t%1.2e'%(tau, mc_tau[0], mc_tau[1], mc_tau[2],mc_tau[0]-tau)
+print 'avg_mag \t%1.2e\t%1.2e\t+%1.2e\t-%1.2e\t%1.2e'%(avg_mag, mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2],mc_avg_mag[0]-avg_mag)
 #figure(2)
 #for i in range(ndim):
     #figure()
     #hist(sampler.flatchain[:,i], 100, color="k", histtype="step")
     #title("Dimension {0:d}".format(i))
-fig = triangle.corner(samples, labels=["$\sigma$", r"$\tau$", "$b$"],
-                      truths=[sigma, tau, b])
+fig = triangle.corner(samples, labels=["$\sigma$", r"$\tau$", "avg_mag"],
+                      truths=[sigma, tau, avg_mag])
 fig.savefig("triangle.png")
 show()

@@ -27,8 +27,8 @@ print 'Checking generator mean and variance relationships (Kelly, 2009 Equations
 def check_sigma_dependence():
   figure()
   print 'CHECKING sigma dependence'
-  b=3.
-  X_s=2.
+  avg_mag=19.5
+  X_s=avg_mag
   delta_t=0.014
   tau=121.
   sigma_array=10**arange(-5.,6.,1.)
@@ -39,13 +39,13 @@ def check_sigma_dependence():
     s=0.
     s2=0.
     for j in range(0,Ntrials):
-      val=X_int(delta_t,X_s, tau, b, sigma_array[i], Nsteps)
+      val=X_int(delta_t,X_s, tau, avg_mag, sigma_array[i], Nsteps)
       s+=val
       s2+=val**2
     mean=s/Ntrials
     var=s2/Ntrials-mean**2
     print i,'of', len(sigma_array)
-    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau)*X_s+b*tau*(1.-exp(-delta_t/tau)))
+    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau)*X_s+avg_mag*(1.-exp(-delta_t/tau)))
     print '\tvar %1.2e %1.2e'%(var, (tau*sigma_array[i]**2)/2.*(1.-exp(-2.*delta_t/tau)))
     subplot(211)
     errorbar(sigma_array[i],[mean],yerr=[sqrt(var)/sqrt(Ntrials)], fmt='ko-', ms=3)
@@ -56,7 +56,7 @@ def check_sigma_dependence():
   ax1.set_xscale('log')
   #ax1.set_yscale('log')
   sigma_array=10**arange(-5.,6.,0.1)
-  plot(sigma_array,exp(-delta_t/tau)*X_s+b*tau*(1.-exp(-delta_t/tau))*ones(len(sigma_array)))
+  plot(sigma_array,exp(-delta_t/tau)*X_s+avg_mag*(1.-exp(-delta_t/tau))*ones(len(sigma_array)))
   xlabel(r'sigma, mag/day$^{1/2}$')
   ylabel(r'$E(X(t)|X(s))$')
   xlim(3.e-6, 3.e5)
@@ -77,9 +77,9 @@ def check_sigma_dependence():
 def check_tau_dependence():
   figure()
   print 'CHECKING tau dependence'
-  b=3.
+  avg_mag=19.5
   sigma=0.56
-  X_s=2.
+  X_s=avg_mag/10.
   delta_t=1.e2
   tau_array=10**arange(-5.,6.,1.)
   Nsteps=1000
@@ -89,14 +89,14 @@ def check_tau_dependence():
     s=0.
     s2=0.
     for j in range(0,Ntrials):
-      val=X_int(delta_t,X_s, tau_array[i], b, sigma, Nsteps)
+      val=X_int(delta_t,X_s, tau_array[i], avg_mag, sigma, Nsteps)
       s+=val
       s2+=val**2
     mean=s/Ntrials
     var=s2/Ntrials-mean**2
     print i,'of', len(tau_array)
     print '\ttau=%1.2e  delta_t=%1.2e  delta_t/tau = %1.2e'%(tau_array[i], delta_t, delta_t/tau_array[i])
-    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau_array[i])*X_s+b*tau_array[i]*(1.-exp(-delta_t/tau_array[i] )))
+    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau_array[i])*X_s+avg_mag*(1.-exp(-delta_t/tau_array[i] )))
     print '\tvar %1.2e %1.2e'%(var, (tau_array[i]*sigma**2)/2.*(1.-exp(-2.*delta_t/tau_array[i])))
     subplot(211)
     errorbar(tau_array[i],[mean],yerr=[sqrt(var)/sqrt(Ntrials)], fmt='k.-')
@@ -107,7 +107,7 @@ def check_tau_dependence():
   ax1.set_xscale('log')
   ax1.set_yscale('log')
   tau_array=10**arange(-5.,6.,0.1)
-  plot(tau_array,exp(-delta_t/tau_array)*X_s+b*tau_array*(1.-exp(-delta_t/tau_array)),'k--', lw=2, label='delta_t=100 days')
+  plot(tau_array,exp(-delta_t/tau_array)*X_s+avg_mag*(1.-exp(-delta_t/tau_array)),'k--', lw=2, label='delta_t=100 days')
   #plot(tau_array,b*tau_array*(1.-exp(-delta_t/tau_array)))
   #plot(tau_array,exp(-delta_t/tau_array)*X_s)
   xlabel('tau, days')
@@ -127,9 +127,9 @@ def check_tau_dependence():
 
 
 
-  b=3.
-  sigma=0.56
-  X_s=2.
+  #avg_mag=19.5
+  #sigma=0.56
+  #X_s=avg_mag
   delta_t=1.
   tau_array=10**arange(-5.,6.,1.)
   #Nsteps=1000
@@ -139,14 +139,14 @@ def check_tau_dependence():
     s=0.
     s2=0.
     for j in range(0,Ntrials):
-      val=X_int(delta_t,X_s, tau_array[i], b, sigma, Nsteps)
+      val=X_int(delta_t,X_s, tau_array[i], avg_mag, sigma, Nsteps)
       s+=val
       s2+=val**2
     mean=s/Ntrials
     var=s2/Ntrials-mean**2
     print i,'of', len(tau_array)
     print '\ttau=%1.2e  delta_t=%1.2e  delta_t/tau = %1.2e'%(tau_array[i], delta_t, delta_t/tau_array[i])
-    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau_array[i])*X_s+b*tau_array[i]*(1.-exp(-delta_t/tau_array[i] )))
+    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau_array[i])*X_s+avg_mag*(1.-exp(-delta_t/tau_array[i] )))
     print '\tvar %1.2e %1.2e'%(var, (tau_array[i]*sigma**2)/2.*(1.-exp(-2.*delta_t/tau_array[i])))
     subplot(211)
     errorbar(tau_array[i],[mean],yerr=[sqrt(var)/sqrt(Ntrials)], fmt='b.-')
@@ -157,7 +157,7 @@ def check_tau_dependence():
   ax1.set_xscale('log')
   ax1.set_yscale('log')
   tau_array=10**arange(-5.,6.,0.1)
-  plot(tau_array,exp(-delta_t/tau_array)*X_s+b*tau_array*(1.-exp(-delta_t/tau_array)),'b--', lw=2, label='delta_t=1 day')
+  plot(tau_array,exp(-delta_t/tau_array)*X_s+avg_mag*(1.-exp(-delta_t/tau_array)),'b--', lw=2, label='delta_t=1 day')
   #plot(tau_array,b*tau_array*(1.-exp(-delta_t/tau_array)))
   #plot(tau_array,exp(-delta_t/tau_array)*X_s)
   xlabel('tau, days')
@@ -175,9 +175,9 @@ def check_tau_dependence():
   #ylim(1.e-5,1.e2)
 
 
-  b=3.
-  sigma=0.56
-  X_s=2.
+  #avg_mag=19.5
+  #sigma=0.56
+  #X_s=avg_mag
   delta_t=0.01
   tau_array=10**arange(-5.,6.,1.)
   #Nsteps=1000
@@ -187,14 +187,14 @@ def check_tau_dependence():
     s=0.
     s2=0.
     for j in range(0,Ntrials):
-      val=X_int(delta_t,X_s, tau_array[i], b, sigma, Nsteps)
+      val=X_int(delta_t,X_s, tau_array[i], avg_mag, sigma, Nsteps)
       s+=val
       s2+=val**2
     mean=s/Ntrials
     var=s2/Ntrials-mean**2
     print i,'of', len(tau_array)
     print '\ttau=%1.2e  delta_t=%1.2e  delta_t/tau = %1.2e'%(tau_array[i], delta_t, delta_t/tau_array[i])
-    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau_array[i])*X_s+b*tau_array[i]*(1.-exp(-delta_t/tau_array[i] )))
+    print '\tmean %1.2e %1.2e'%(mean, exp(-delta_t/tau_array[i])*X_s+avg_mag*(1.-exp(-delta_t/tau_array[i] )))
     print '\tvar %1.2e %1.2e'%(var, (tau_array[i]*sigma**2)/2.*(1.-exp(-2.*delta_t/tau_array[i])))
     subplot(211)
     errorbar(tau_array[i],[mean],yerr=[sqrt(var)/sqrt(Ntrials)], fmt='r.-')
@@ -205,14 +205,14 @@ def check_tau_dependence():
   ax1.set_xscale('log')
   ax1.set_yscale('log')
   tau_array=10**arange(-5.,6.,0.1)
-  plot(tau_array,exp(-delta_t/tau_array)*X_s+b*tau_array*(1.-exp(-delta_t/tau_array)),'r--', lw=2, label='delta_t=.01 day')
+  plot(tau_array,exp(-delta_t/tau_array)*X_s+avg_mag*(1.-exp(-delta_t/tau_array)),'r--', lw=2, label='delta_t=.01 day')
   #plot(tau_array,b*tau_array*(1.-exp(-delta_t/tau_array)))
   #plot(tau_array,exp(-delta_t/tau_array)*X_s)
   xlabel('tau, days')
   ylabel(r'$E(X(t)|X(s))$')
   xlim(3.e-6, 3.e5)
   ylim(1.e-6,1.e3)
-  legend(loc=4)
+  legend(loc=1)
 
   ax1=subplot(212)
   ax1.set_xscale('log')
@@ -231,18 +231,18 @@ def check_tau_dependence():
 
 
 def check_redshift_dependence():
-  b=3.
+  avg_mag=19.5
   #delta_t=1.
   #tau=1.
   delta_t=1.
   tau=100.
-  X_0=b*tau
+  X_0=avg_mag
   sigma=0.56
   redshift_array=arange(0.,5.,1.)
   Nsteps=1000
   t=arange(1000,dtype=float64)*delta_t
   for i in range(0,len(redshift_array)):
-    X=drw_lightcurve(t, X_0, tau, sigma, b, redshift_array[i], Nsteps)
+    X=drw_lightcurve(t, X_0, tau, sigma, avg_mag, redshift_array[i], Nsteps)
     dX=diff(X)
     print ''
     #print 'theoretical mean=%1.2e'%(b*tau*(1.-exp(-delta_t/tau)))
@@ -255,7 +255,7 @@ def check_redshift_dependence():
     xlabel('Observer Time, days')
     ylabel('Flux, arb. u.')
     
-    suptitle(r'b=%1.2f,$\tau$=%1.2f, $\sigma$=%1.2f, $\Delta t$=%1.2f'%(b,tau,sigma, delta_t), fontsize=14)
+    suptitle(r'avg_mag=%1.2f,$\tau$=%1.2f, $\sigma$=%1.2f, $\Delta t$=%1.2f'%(avg_mag,tau,sigma, delta_t), fontsize=14)
     title(r'z=%1.1f'%(redshift_array[i]))
     figure(2)
     n=511+i
@@ -269,12 +269,12 @@ def check_redshift_dependence():
     X=np.sort(X)
     #errorbar(X[0:len(t)-1],(exp(-delta_t/tau)-1.)*X[0:len(t)-1]+b*tau*(1.-exp(-delta_t/tau)),yerr=sigma**2*tau/2*(1-exp(-2.*delta_t/tau)), fmt='r.-')
     #fill_between(x, y-error, y+error)
-    fill_between(X[0:len(t)-1], (exp(-delta_t/tau)-1.)*X[0:len(t)-1]+b*tau*(1.-exp(-delta_t/tau)) - sigma**2*tau/2*(1-exp(-2.*delta_t/tau)), (exp(-delta_t/tau)-1.)*X[0:len(t)-1]+b*tau*(1.-exp(-delta_t/tau)) + sigma**2*tau/2*(1-exp(-2.*delta_t/tau)), alpha=0.7, edgecolor='r', facecolor='r')
+    fill_between(X[0:len(t)-1], (exp(-delta_t/tau)-1.)*X[0:len(t)-1]+avg_mag*(1.-exp(-delta_t/tau)) - sigma**2*tau/2*(1-exp(-2.*delta_t/tau)), (exp(-delta_t/tau)-1.)*X[0:len(t)-1]+avg_mag*(1.-exp(-delta_t/tau)) + sigma**2*tau/2*(1-exp(-2.*delta_t/tau)), alpha=0.7, edgecolor='r', facecolor='r')
     #show()
   show()  
   
 
 #SELECT WHICH DEPENDENCE YOU WANT TO TEST
-check_sigma_dependence()
+#check_sigma_dependence()
 #check_tau_dependence()
-#check_redshift_dependence()
+check_redshift_dependence()

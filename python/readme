@@ -9,17 +9,14 @@ Source files: these contain functions used in simulations
   drw_lightcurve.py
     It contains the functions that generate a light curve given quasar parameters sigma, tau, and b.
 
-  delayed_lightcurve.py
-    The is a source file. It takes the observation schedule and image delay to produce two delayed lightcurves.  I still have to add the magnitude offset.
-
   qsr_ll.py
     This is a source file. This contains the hojjati and kelly likelihood functions for a single quasar light curve.
 
   hubble_observation_schedule.py
     This is a source file. It contains a function that provides a randmoized hubble-like schedule. It is not currently being used in any of the files but that will change.
 
-  emcee_light_curves.py
-    emcee reconstruction of light curve parameters.
+  delayed_lightcurve.py
+    The is a source file. It takes the observation schedule and image delay to produce two delayed lightcurves.  I still have to add the magnitude offset.
 
 Tests and examples: these contain example applications and tests of the functions in the source files.
 
@@ -31,6 +28,9 @@ Tests and examples: these contain example applications and tests of the function
 
   lightcurve_ll_plots.py
     This is a test function of qsr_ll.py It produces plots of the likelihood function for sigma and tau parameters for a simulated lightcurve using drw_lightcurve.py. This will be updated to produce triangle plots.
+
+  emcee_light_curves.py
+    emcee reconstruction of light curve parameters.
 
   test_delayed_lightcurve.py
     Provide examples of the functions in delayed_lightcurve.py.
