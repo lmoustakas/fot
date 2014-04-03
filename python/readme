@@ -18,6 +18,8 @@ Source files: these contain functions used in simulations
   hubble_observation_schedule.py
     This is a source file. It contains a function that provides a randmoized hubble-like schedule. It is not currently being used in any of the files but that will change.
 
+  emcee_light_curves.py
+    emcee reconstruction of light curve parameters.
 
 Tests and examples: these contain example applications and tests of the functions in the source files.
 
