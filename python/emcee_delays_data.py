@@ -6,15 +6,16 @@ import emcee
 import triangle
 import random
 import datetime 
-from hubble_observation_schedule import hubble_obs_sched
-from delayed_lightcurve import delayed_lightcurve
-from delay_ll import kelly_delay_ll
-from qsr_ll import kelly_ll
-from qsr_ll import kelly_diff
+from delay_ll  import merge
+from delay_ll  import kelly_delay_ll
+from qsr_ll    import kelly_ll
+from qsr_ll    import kelly_estimates
 from read_data import read_data
 
 rcParams['font.size']=14
 rcParams['legend.fontsize']=14
+rcParams['legend.borderpad']=0.1
+rcParams['legend.borderaxespad']=0.
 rcParams['axes.formatter.limits']=-4,7
 rcParams['figure.facecolor'] = 'white'
 rcParams['figure.subplot.hspace']=0.5
@@ -64,20 +65,6 @@ def optimize_lc_param_estimate(_t, _x, _e):
   result = op.fmin(nll, crude_lc_param_estimate(_t, _x), args=(_t, _x, _e))
   return result
   
-def merge(_t, _x1, _e1, _x2, _e2, _dt, _dmag):
-  _t2  = _t.copy()  - _dt 
-  _x2  = _x2.copy() - _dmag 
-  
-  t_cat=concatenate([_t,_t2])
-  x_cat=concatenate([_x1,_x2])
-  e_cat=concatenate([e1,e2])
-    
-  #time order the array
-  t_cat_sort  =  array([x for (x,y,z) in sorted(zip(t_cat,x_cat,e_cat))])
-  x_cat_sort  =  array([y for (x,y,z) in sorted(zip(t_cat,x_cat, e_cat))])
-  e_cat_sort  =  array([z for (x,y,z) in sorted(zip(t_cat,x_cat, e_cat))])
-  
-  return  array(t_cat_sort), array(x_cat_sort), array(e_cat_sort)
 
 def diff_check(_sigma, _tau, _avg_mag,_t,_x,_e):
   x_hat,dif_err = kelly_diff([_sigma, _tau, _avg_mag],_t,_x,_e)
@@ -107,6 +94,8 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   op_sig1, op_tau1, op_avg_lc1 = optimize_lc_param_estimate(t,lc1,e1)
   op_sig2, op_tau2, op_avg_lc2 = optimize_lc_param_estimate(t,lc2,e2)
 
+  op_sig1=abs(op_sig1)
+  op_sig2=abs(op_sig2)
   print ''
   print 'OPTIMIZED LIGHT CURVE PARAMETERS'
   print '--------------------------------'
@@ -135,9 +124,10 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'The most common sample time distance is %1.2f days within the range of [%1.2f,%1.2f] days'%(10**mode, 10**(0.5*(bin_vals[n_max-1]+bin_vals[n_max])), 10**(0.5*(bin_vals[n_max]+bin_vals[n_max+1])))
   print ''
   
-  delta_delay=(10**mode/4.)
+  delta_delay=(10**mode/50.)
   print 'Scanning for initial delay estimate with delay step %1.2f'%(delta_delay)
-  del_array=arange(-1000.,1000.1,delta_delay)
+  #del_array=arange(-1000.,1000.1,delta_delay)
+  del_array=arange(-1000.,1000.1,10.)
   count=-1
   ll=[]
   max_val  = -1.e10
@@ -195,10 +185,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   delay = del_array[k_max]
 
 
-
   #ESTIMATES OF QSR LIGHT CURVE
   delta_mag = (op_avg_lc2-op_avg_lc1)
-  sigma = c_sig
+  sigma = abs(c_sig)
   tau = c_tau
   avg_mag=op_avg_lc1
   print ''
@@ -213,7 +202,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 
   ct, cx, ce = merge(t, lc1, e1, lc2, e2, delay, delta_mag)
   c_sig, c_tau, c_avg_lc = optimize_lc_param_estimate(ct,cx,ce)
-  sigma   = c_sig
+  sigma   = abs(c_sig)
   tau     = c_tau
   avg_mag = c_avg_lc
   print ''
@@ -230,17 +219,27 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   #PLOT LIGHT CURVES
   fig = figure()
   ax=subplot(311)
-  errorbar(t,lc1,e1, fmt='b.', ms=3)
-  errorbar(t,lc2,e2, fmt='r.', ms=3)
-  plot(ct,cx,'k.', ms=3)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t,lc2,e2, fmt='r.', ms=3, label='light curve 2')
+  legend(loc=1)
+  xlabel('time, day')
+  ylabel('magnitude')
+  #plot(ct,cx,'k.', ms=3)
   ax=subplot(312)
-  errorbar(t,lc1,e1, fmt='g.', ms=3)
-  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3)
-  plot(ct,cx,'k.', ms=3)
+  errorbar(t,lc1,e1, fmt='g.', ms=3, label='light curve 1')
+  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  xlabel('time, day')
+  ylabel('magnitude')
+  legend(loc=1)
+ #plot(ct,cx,'k.', ms=3)
   ax=subplot(313)
   ct, cx, ce = merge(t, lc1, e1, lc2, e2, delay, delta_mag)
-  errorbar(ct,cx, ce,fmt='k.', ms=3)
+  errorbar(ct,cx, ce,fmt='k.', ms=3, label = 'merged light curve')
+  xlabel('time, day')
+  ylabel('magnitude')
+  legend(loc=1)
   fig.savefig("light_curves_%s.png"%(output_tag))
+  #show()
 
   print ''
   print '-------------'
@@ -248,11 +247,14 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print '-------------'
   print ''
   #RUN EMCEE
-  ndim, nwalkers = 5, 200
+  ndim, nwalkers = 5, 100
+  n_burn_in_interations = 100
+  n_interations = 1000
   print 'pos'
   true_vals=[delay, delta_mag, sigma, tau, avg_mag]
   print 'np.random.randn(ndim)',np.random.randn(ndim)
-  pos = [true_vals*(ones(ndim) + 1e-1*np.random.randn(ndim)) for i in range(nwalkers)]
+  #pos = [true_vals*(ones(ndim) + 1e-1*np.random.randn(ndim)) for i in range(nwalkers)]
+  pos = [[uniform(delay-10,delay+10.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
   #pos = [true_vals + [uniform(-1.e3, 1.e3), uniform(-10.,10.), uniform(0.1,10.), uniform(0.1,800.), uniform(-50.,50.)] for i in range(nwalkers)]
   #uniform([low, high, size])
   r=np.random.randn(ndim)
@@ -263,7 +265,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'It is currently   ', datetime.datetime.now()
   print 'burn-in sampler.run_mcmc'
   #sampler.run_mcmc(pos, 500)
-  sampler.run_mcmc(pos, 100)
+  sampler.run_mcmc(pos, n_burn_in_interations)
 
   samples = sampler.chain[:, 50:, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
@@ -287,11 +289,11 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.run_mcmc'
   #sampler.run_mcmc(pos, 100)
-  sampler.run_mcmc(pos, 1000)
+  sampler.run_mcmc(pos, n_interations)
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.chain'
-  samples = sampler.chain[:, 50:, :].reshape((-1, ndim))
+  samples = sampler.chain[:, 500:, :].reshape((-1, ndim))
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
   mc_delay, mc_delta_mag, mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
@@ -320,5 +322,13 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 #END def emcee_delay_estimator(...)
 
 t, mag1, e1, mag2, e2, mag3, e3, mag4, e4 = read_data('../data/cosmograil/RXJ1131_Tewes2013.rdb') 
-emcee_delay_estimator(t, mag2, e2, mag4, e4, 'RXJ1131_curves_BD')
+e1=array([max(0.1,x) for x in e1])
+e2=array([max(0.1,x) for x in e2])
+e3=array([max(0.1,x) for x in e3])
+e4=array([max(0.1,x) for x in e4])
+lc1=mag2
+err1=e2
+lc2=mag4
+err2=e4
+emcee_delay_estimator(t, lc1, err1, lc2, err2, 'RXJ1131_curves_BD')
 #emcee_delay_estimator(t, mag2, e2, mag3, e3, 'RXJ1131_curves_BC')

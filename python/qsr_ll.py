@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-#from pylab import *
 import numpy as np
 
-################################################################################################
-def kelly_diff(theta, time_array, flux_array, ph_err_array):
+def kelly_estimates(theta, time_array, flux_array, ph_err_array):
   #see Equations 6-12 of Kelly, 2009
   if(len(theta)!=3):
     print 'qsr_ll.py'
@@ -27,8 +25,12 @@ def kelly_diff(theta, time_array, flux_array, ph_err_array):
     if(i>1): a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
     Omega.append(Omega[0]*(1-a[i]**2) + a[i]**2*Omega[i-1]*(1.-Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)))
     x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
+  #print 'mean a %1.2f'%(np.mean(a[1:len(t)+1]))
+  #print 'mean Omega %1.2e'%(np.mean(Omega[1:len(t)+1]))
   return x_hat[1:len(t)+1], np.sqrt(Omega[1:len(t)+1]+ph_err_array**2)
 
+################################################################################################
+#from pylab import * #import for testing only.
 def kelly_ll(theta, time_array, flux_array, ph_err_array):
   #see Equations 6-12 of Kelly, 2009
   if(len(theta)!=3):
@@ -41,19 +43,38 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
   if(tau<=0.): return -np.inf
   x=flux_array
   t=time_array
-  #ph_err_array*=0.
+  x_hat, err = kelly_estimates(theta, time_array, flux_array, ph_err_array)
   x_star=x-avg_mag
-  x_hat=[0.]
-  Omega=[tau*sig**2/2.]
-  a=[0.]
-  ll=0.
-  for i in range(1,len(t)+1):
-    if(i==1): a.append(0.)
-    if(i>1): a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
-    Omega.append(Omega[0]*(1-a[i]**2) + a[i]**2*Omega[i-1]*(1.-Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)))
-    x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
-    ll += -(x_hat[i] - x_star[i-1])**2/(Omega[i]+ph_err_array[i-1]**2) - np.log(2*np.pi*(Omega[i]+ph_err_array[i-1]**2))
-  return ll
+  #print len(x_hat), len(err), len(x_star)
+  '''
+  #THESE LINES ARE FOR TESTING PURPOSES ONLY
+  ####################################################
+  from pylab import *
+  figure()
+  ax=subplot(221)
+  errorbar(time_array,x_star,ph_err_array,fmt='b.')
+  errorbar(time_array,x_hat, err, fmt='r.')
+  subplot(222, sharex=ax)
+  errorbar(time_array,x_star-x_hat,err,fmt='b.')
+  subplot(223, sharex=ax)
+  plot(time_array,(x_star-x_hat)/err,'b.')
+  subplot(224)
+  hist((x_star-x_hat)/err, bins=100, range=[-30.,30.])
+  ####################################################
+  '''
+  ll = np.cumsum( -((x_hat-x_star)**2 / (err**2)) - np.log(2*np.pi*(err**2)))  #ph_err_array*=0.
+  return ll[len(x)-1]
+  #x_hat=[0.]
+  #Omega=[tau*sig**2/2.]
+  #a=[0.]
+  #ll=0.
+  #for i in range(1,len(t)+1):
+    #if(i==1): a.append(0.)
+    #if(i>1): a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
+    #Omega.append(Omega[0]*(1-a[i]**2) + a[i]**2*Omega[i-1]*(1.-Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)))
+    #x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
+    #ll += -(x_hat[i] - x_star[i-1])**2/(Omega[i]+ph_err_array[i-1]**2) - np.log(2*np.pi*(Omega[i]+ph_err_array[i-1]**2))
+  #return ll
   
 '''
 def kelly_ll(theta, time_array, flux_array, ph_err_array):
