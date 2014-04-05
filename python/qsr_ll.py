@@ -3,6 +3,31 @@
 import numpy as np
 
 ################################################################################################
+def kelly_diff(theta, time_array, flux_array, ph_err_array):
+  #see Equations 6-12 of Kelly, 2009
+  if(len(theta)!=3):
+    print 'qsr_ll.py'
+    print 'USAGE:***********************************************************************' 
+    print 'kelly_diff ( [sigma, tau, b], time_array, flux_array, measurement_error_array )'
+    print 'exiting'
+    exit()
+  sig, tau, avg_mag = theta
+  
+  x=flux_array
+  t=time_array
+  #ph_err_array*=0.
+  x_star=x-avg_mag
+  #print 'in kelly_diff: avg_mag=',avg_mag 
+  x_hat=[0.]
+  Omega=[tau*sig**2/2.]
+  a=[0.]
+  ll=0.
+  for i in range(1,len(t)+1):
+    if(i==1): a.append(0.)
+    if(i>1): a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
+    Omega.append(Omega[0]*(1-a[i]**2) + a[i]**2*Omega[i-1]*(1.-Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)))
+    x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
+  return x_hat[1:len(t)+1], np.sqrt(Omega[1:len(t)+1]+ph_err_array**2)
 
 def kelly_ll(theta, time_array, flux_array, ph_err_array):
   #see Equations 6-12 of Kelly, 2009
@@ -13,7 +38,7 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
     print 'exiting'
     exit()
   sig, tau, avg_mag = theta
-  
+  if(tau<=0.): return -np.inf
   x=flux_array
   t=time_array
   #ph_err_array*=0.
@@ -21,17 +46,12 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
   x_hat=[0.]
   Omega=[tau*sig**2/2.]
   a=[0.]
-  #ll=-(x_hat[0] - x_star[0])**2/(Omega[0]+ph_err_array[0]**2) - np.log(2*np.pi*(Omega[0]+ph_err_array[0]**2))
   ll=0.
-  #print sig, tau
   for i in range(1,len(t)+1):
-    #x_star[i]=x[i-1]-b*tau #x array starts at 0, the rest start at 1.
-    #print i,i-1, x[i-1], len(x), len(x_star)
     if(i==1): a.append(0.)
     if(i>1): a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
     Omega.append(Omega[0]*(1-a[i]**2) + a[i]**2*Omega[i-1]*(1.-Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)))
     x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
-    #ll += -(x_hat[i] - x_star[i-1])**2/(Omega[i]+ph_err_array[i]**2) - np.log(2*np.pi*(Omega[i]+ph_err_array[i]**2))
     ll += -(x_hat[i] - x_star[i-1])**2/(Omega[i]+ph_err_array[i-1]**2) - np.log(2*np.pi*(Omega[i]+ph_err_array[i-1]**2))
   return ll
   
