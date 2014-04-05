@@ -254,7 +254,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'np.random.randn(ndim)',np.random.randn(ndim)
   pos = [true_vals*(ones(ndim) + 1e-1*np.random.randn(ndim)) for i in range(nwalkers)]
   #pos = [true_vals + [uniform(-1.e3, 1.e3), uniform(-10.,10.), uniform(0.1,10.), uniform(0.1,800.), uniform(-50.,50.)] for i in range(nwalkers)]
-  uniform([low, high, size])
+  #uniform([low, high, size])
   r=np.random.randn(ndim)
   #pos = [true_vals + [10**mode*r[0], 0.1*delta_mag*r[1], abs((sigma*r[2]+sigma)), ] for i in range(nwalkers)]
   print 'sampler'
@@ -320,4 +320,5 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 #END def emcee_delay_estimator(...)
 
 t, mag1, e1, mag2, e2, mag3, e3, mag4, e4 = read_data('../data/cosmograil/RXJ1131_Tewes2013.rdb') 
-emcee_delay_estimator(t, mag2, e2, mag3, e3, 'RXJ1131_curves_BC')
+emcee_delay_estimator(t, mag2, e2, mag4, e4, 'RXJ1131_curves_BD')
+#emcee_delay_estimator(t, mag2, e2, mag3, e3, 'RXJ1131_curves_BC')
