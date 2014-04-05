@@ -34,17 +34,6 @@ rcParams['ytick.major.pad'] = 1
 
 # DEFINE THE LIKELIHOOD FUNCTION
 
-def lnprior(theta):
-  delay, delta_mag, sigma, tau, avg_mag = theta
-  if -1.e3<delay<1.e3 and -10<delta_mag<10. and 0.1<sigma<10. and 0.<tau<800. and -50.<avg_mag<50.:
-        return 0.0
-  return -np.inf
-    
-def lnprob(theta, t, lc1, err1, lc2, err2):
-    lp = lnprior(theta)
-    if not np.isfinite(lp):
-        return -np.inf
-    return lp + kelly_delay_ll(theta, t, lc1, err1, lc2, err2)
 
 def crude_lc_param_estimate(_t, _x):
   avg_lc = cumsum(_x)[len(_x)-1]/len(_x)
@@ -226,7 +215,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   ylabel('magnitude')
   #plot(ct,cx,'k.', ms=3)
   ax=subplot(312)
-  errorbar(t,lc1,e1, fmt='g.', ms=3, label='light curve 1')
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
   errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
   xlabel('time, day')
   ylabel('magnitude')
@@ -234,13 +223,26 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
  #plot(ct,cx,'k.', ms=3)
   ax=subplot(313)
   ct, cx, ce = merge(t, lc1, e1, lc2, e2, delay, delta_mag)
-  errorbar(ct,cx, ce,fmt='k.', ms=3, label = 'merged light curve')
+  errorbar(ct,cx, ce,fmt='b.', ms=3, label = 'merged light curve')
   xlabel('time, day')
   ylabel('magnitude')
   legend(loc=1)
-  fig.savefig("light_curves_%s.png"%(output_tag))
+  fig.savefig("op_light_curves_%s.png"%(output_tag))
   #show()
 
+  def lnprior(_theta):
+    _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
+    if delay-50.<_delay<delay+50. and delta_mag-1.<_delta_mag<delta_mag+1. and sigma*0.1<_sigma<sigma*10. and tau*0.1<_tau<tau*10. and avg_mag-1.<_avg_mag<avg_mag+1.:
+	  return 0.0
+    return -np.inf
+      
+  def lnprob(theta, t, lc1, err1, lc2, err2):
+    lp = lnprior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + kelly_delay_ll(theta, t, lc1, err1, lc2, err2)
+
+  
   print ''
   print '-------------'
   print 'RUNNING EMCEE'
@@ -248,13 +250,13 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print ''
   #RUN EMCEE
   ndim, nwalkers = 5, 100
-  n_burn_in_interations = 100
-  n_interations = 1000
+  n_burn_in_iterations = 100
+  n_iterations = 1000
   print 'pos'
   true_vals=[delay, delta_mag, sigma, tau, avg_mag]
-  print 'np.random.randn(ndim)',np.random.randn(ndim)
-  #pos = [true_vals*(ones(ndim) + 1e-1*np.random.randn(ndim)) for i in range(nwalkers)]
-  pos = [[uniform(delay-10,delay+10.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
+  #print 'np.random.randn(ndim)',np.random.randn(ndim)
+  pos = [true_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+  #pos = [[uniform(delay-100,delay+100.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
   #pos = [true_vals + [uniform(-1.e3, 1.e3), uniform(-10.,10.), uniform(0.1,10.), uniform(0.1,800.), uniform(-50.,50.)] for i in range(nwalkers)]
   #uniform([low, high, size])
   r=np.random.randn(ndim)
@@ -265,7 +267,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'It is currently   ', datetime.datetime.now()
   print 'burn-in sampler.run_mcmc'
   #sampler.run_mcmc(pos, 500)
-  sampler.run_mcmc(pos, n_burn_in_interations)
+  sampler.run_mcmc(pos, n_burn_in_iterations)
 
   samples = sampler.chain[:, 50:, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
@@ -285,15 +287,17 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 
 
   sampler.reset()
+  
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.run_mcmc'
   #sampler.run_mcmc(pos, 100)
-  sampler.run_mcmc(pos, n_interations)
+  sampler.run_mcmc(pos, n_iterations)
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.chain'
-  samples = sampler.chain[:, 500:, :].reshape((-1, ndim))
+  samples = sampler.chain[:, int(0.1*n_iterations):, :].reshape((-1, ndim))
+  print len(samples)
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
   mc_delay, mc_delta_mag, mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
@@ -314,6 +318,30 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
   fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   fig.savefig("triangle_%s.png"%(output_tag))
+  
+  fig = figure()
+  ax=subplot(311)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t,lc2,e2, fmt='r.', ms=3, label='light curve 2')
+  legend(loc=1)
+  xlabel('time, day')
+  ylabel('magnitude')
+  #plot(ct,cx,'k.', ms=3)
+  ax=subplot(312)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t-mc_delay[0], lc2-mc_delta_mag[0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  xlabel('time, day')
+  ylabel('magnitude')
+  legend(loc=1)
+ #plot(ct,cx,'k.', ms=3)
+  ax=subplot(313)
+  ct, cx, ce = merge(t, lc1, e1, lc2, e2, mc_delay[0], mc_delta_mag[0])
+  errorbar(ct,cx, ce,fmt='b.', ms=3, label = 'merged light curve')
+  xlabel('time, day')
+  ylabel('magnitude')
+  legend(loc=1)
+  fig.savefig("mc_light_curves_%s.png"%(output_tag))
+
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   #show()
@@ -326,9 +354,10 @@ e1=array([max(0.1,x) for x in e1])
 e2=array([max(0.1,x) for x in e2])
 e3=array([max(0.1,x) for x in e3])
 e4=array([max(0.1,x) for x in e4])
-lc1=mag2
-err1=e2
-lc2=mag4
-err2=e4
-emcee_delay_estimator(t, lc1, err1, lc2, err2, 'RXJ1131_curves_BD')
+t    =t[0:70]
+lc1  =mag1[0:70]
+err1 =e1[0:70]
+lc2  =mag4[0:70]
+err2 =e4[0:70]
+emcee_delay_estimator(t, lc1, err1, lc2, err2, 'RXJ1131_curves_AD')
 #emcee_delay_estimator(t, mag2, e2, mag3, e3, 'RXJ1131_curves_BC')
