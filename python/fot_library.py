@@ -225,10 +225,12 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'The most common sample time distance is %1.2f days within the range of [%1.2f,%1.2f] days'%(10**mode, 10**(0.5*(bin_vals[n_max-1]+bin_vals[n_max])), 10**(0.5*(bin_vals[n_max]+bin_vals[n_max+1])))
   print ''
   
-  delta_delay=(10**mode/50.)
-  print 'Scanning for initial delay estimate with delay step %1.2f'%(delta_delay)
+  #delta_delay=(10**mode/50.)
+  #print 'Scanning for initial delay estimate with delay step %1.2f'%(delta_delay)
   #del_array=arange(-1000.,1000.1,delta_delay)
-  del_array=arange(-1000.,1000.1,10.)
+  #del_array=arange(-1000.,1000.1,10.)
+  data_record_length = t[len(t)-1]-t[0]
+  del_array=arange(-0.5*data_record_length,+0.5*data_record_length,10.)
   count=-1
   ll=[]
   max_val  = -1.e10
@@ -344,7 +346,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 
   def lnprior(_theta):
     _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
-    if delay-50.<_delay<delay+50. and delta_mag-1.<_delta_mag<delta_mag+1. and sigma*0.1<_sigma<sigma*10. and tau*0.1<_tau<tau*10. and avg_mag-1.<_avg_mag<avg_mag+1.:
+    if delay-0.5*data_record_length<_delay<delay+0.5*data_record_length and delta_mag-1.<_delta_mag<delta_mag+1. and sigma*0.1<_sigma<sigma*10. and tau*0.1<_tau<tau*10. and avg_mag-1.<_avg_mag<avg_mag+1.:
 	  return 0.0
     return -np.inf
       
