@@ -171,6 +171,10 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
+  date_string = t0.strftime("_%Y_%m_%d_%H:%M")
+  #print date_string
+  output_tag = ''.join([output_tag,date_string ])
+  print 'The output_tag for this run is:', output_tag
 
   crude_sig1, crude_tau1, crude_avg_lc1 = crude_lc_param_estimate(t,lc1)
   crude_sig2, crude_tau2, crude_avg_lc2 = crude_lc_param_estimate(t,lc2)

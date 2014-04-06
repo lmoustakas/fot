@@ -20,5 +20,7 @@ if __name__ == "__main__":
     # read in the data
     time,m,me=read_cosmograil_data(args.datafile,[mag1,mag2],[magerr1,magerr2])
     # add optionally specified systematic uncertainty
-    me = np.add(me,args.systematic)
+    me[magerr1] = np.add(me[magerr1],args.systematic)
+    me[magerr2] = np.add(me[magerr2],args.systematic)
+    # run the emcee delay estimator
     emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
