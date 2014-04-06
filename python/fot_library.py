@@ -12,9 +12,11 @@ This is the central library of functions.
 
 Let us set the environment variable FOTDIR to the local location of the repository. 
 '''
+import matplotlib
+matplotlib.use('Agg') # Note, this MUST be before importing pylab or matplotlib.pyplot
+from pylab import *
 import os
 from astropy.io import ascii
-from pylab import *
 import numpy as np
 import scipy.optimize as op
 import emcee
