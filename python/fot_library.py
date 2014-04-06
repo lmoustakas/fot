@@ -32,34 +32,6 @@ def read_cosmograil_data(fname,mags,magerrs):
     data=ascii.read(os.environ['FOTDIR']+'/data/cosmograil/'+fname,data_start=2)
     return data['mhjd'],data[mags],data[magerrs]
 
-def read_cosmograil_data(fname):
-  jd=[]
-  mag1=[]
-  e1=[]
-  mag2=[]
-  e2=[]
-  mag3=[]
-  e3=[]
-  mag4=[]
-  e4=[]
-  lc=0
-  for line in file(fname):
-    #print line
-    lc+=1
-    if(lc>2):
-      line.split()[1]
-      jd.append(float(line.split()[0]))
-      mag1.append(float(line.split()[1]))
-      e1.append(float(line.split()[2]))
-      mag2.append(float(line.split()[3]))
-      e2.append(float(line.split()[4]))
-      mag3.append(float(line.split()[5]))
-      e3.append(float(line.split()[6]))
-      mag4.append(float(line.split()[7]))
-      e4.append(float(line.split()[8]))
-    
-  return array(jd), array(mag1),array(e1),array(mag2),array(e2),array(mag3),array(e3),array(mag4),array(e4)
-
 def crude_lc_param_estimate(_t, _x):
   avg_lc = cumsum(_x)[len(_x)-1]/len(_x)
   tau=mean(diff(_t)*(avg_lc-_x[0:len(_x)-1]))/mean(diff(_x))

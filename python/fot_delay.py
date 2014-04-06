@@ -6,7 +6,7 @@ Full Of Time
 '''
 if __name__ == "__main__":
     
-    import fot_library
+    from fot_library import * 
     import argparse
     parser=argparse.ArgumentParser(description='fot_delay routine to calculate delay inference')
     parser.add_argument("-i","--datafile",help="COSMOGRAIL data file",type=str)
@@ -15,10 +15,10 @@ if __name__ == "__main__":
     parser.add_argument("-o","--outputtag",help="Output tag, in quotes",type=str)
     parser.add_argument("-s","--systematic",help="Additional systematic uncertainty (e.g. 0.1) [mag]",type=float)
     args=parser.parse_args()
-    infile=args.infile
-    # read in the data
+    # define the right column header names
     mag1, mag2, magerr1, magerr2 = 'mag_'+args.image1, 'mag_'+args.image2, 'magerr_'+args.image1, 'magerr_'+args.image2
+    # read in the data
     time,m,me=read_cosmograil_data(args.datafile,[mag1,mag2],[magerr1,magerr2])
     # add optionally specified systematic uncertainty
-    me=me+args.systematic
-    emcee_delay_estimator(time, m['mag1'],me['magerr1'],m['mag2'],me['magerr2'],args.outputtag)
+    np.add(me,args.systematic)
+    emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
