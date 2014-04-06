@@ -39,3 +39,29 @@ Tests and examples: these contain example applications and tests of the function
     emcee reconstruction of delays, magnitude offsets, and light curve parameters.
 
 
+Update by LAM, 4/5/14
+Taking ARW's code and working to systematize it so that command-line 
+control can help us do many runs in batch mode, taking advantage of 
+the many cpus on nisus, etc.  The two routines in play right now are
+
+fot_library.py which contains all key routines, and
+
+fot_delay.py which is used to set up and run the inference on delays.
+
+The syntax can be checked with
+
+./fot_delay.py -h
+
+Note that all output is directed to the new directory outputs.
+
+Also note that this expects a new environment variable to be set, so
+please put this in your ~/.login or ~/.cshrc file.  This is for a csh
+environment variable, convert it to bash format if that's what you're
+using.
+
+setenv FOTDIR ~/research/projects/OMEGA/fot
+
+A test run is shown here:
+
+./fot_delay.py -i 'RXJ1131_Tewes2013.rdb' -l 'A' -m 'B' -s 0.1 -o 'testrun' > testrun.log & 
+
