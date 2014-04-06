@@ -63,5 +63,8 @@ setenv FOTDIR ~/research/projects/OMEGA/fot
 
 A test run is shown here:
 
-./fot_delay.py -i 'RXJ1131_Tewes2013.rdb' -l 'A' -m 'B' -s 0.1 -o 'testrun' > testrun.log & 
+./fot_delay.py -i 'RXJ1131_Tewes2013.rdb' -l 'A' -m 'B' -s 0.1 -o 'testrun' 
+
+Let's get a bit more clever and have the output redirect to a logfile, but this
+is okay for now.
 
