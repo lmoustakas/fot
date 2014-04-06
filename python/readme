@@ -2,6 +2,18 @@ mcmc inference and other things
 * straight data stream light curve 
 * time delay
 
+==Dependencies==
+triangle_plot (triangle)
+astrophy
+numpy
+scipy
+emcee
+random
+datetime
+argparse
+os
+
+
 Guide of python scripts
 
 Source files: these contain functions used in simulations
