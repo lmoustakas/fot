@@ -22,6 +22,26 @@ import triangle
 import random
 import datetime 
 
+rcParams['font.size']=14
+rcParams['legend.fontsize']=14
+rcParams['legend.borderpad']=0.1
+rcParams['legend.borderaxespad']=0.
+rcParams['axes.formatter.limits']=-4,7
+rcParams['figure.facecolor'] = 'white'
+rcParams['figure.subplot.hspace']=0.5
+rcParams['figure.subplot.wspace']=0.5
+rcParams['figure.subplot.left']=0.15
+rcParams['figure.subplot.right']=0.9
+rcParams['figure.subplot.top']=0.88
+rcParams['figure.subplot.bottom']=0.15
+rcParams['figure.figsize'] = 10, 8 
+rcParams['legend.numpoints'] = 1 
+rcParams['lines.markersize'] = 10 
+rcParams['lines.linewidth'] = 1
+rcParams['lines.markeredgewidth'] = 1
+rcParams['xtick.major.pad'] = 1
+rcParams['ytick.major.pad'] = 1
+
 def read_cosmograil_data(fname,mags,magerrs):
     '''
     Read in data from the cosmograil release.
