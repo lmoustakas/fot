@@ -21,7 +21,10 @@ if __name__ == "__main__":
     parser.add_argument("-o","--outputtag",help="Output tag, in quotes",type=str)
     args=parser.parse_args()
     Nsteps=1000
-    print args.numorbits
+    print ''
+    print 'SIMULATION PARAMETERS' 
+    print args
+    print ''
     time_array = hubble_obs_sched(args.numorbits)
     mag1, mag2 = delayed_lightcurve(time_array, args.delay, args.delta_mag, args.redshift, args.tau, args.avg_mag, args.sigma, Nsteps)
     #mag1, mag2 = delayed_lightcurve(time_array, delay, delta_mag, redshift, tau, avg_mag, sigma, Nsteps)
