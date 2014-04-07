@@ -230,7 +230,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   #del_array=arange(-1000.,1000.1,delta_delay)
   #del_array=arange(-1000.,1000.1,10.)
   data_record_length = t[len(t)-1]-t[0]
-  del_array=arange(-0.5*data_record_length,+0.5*data_record_length,10.)
+  del_array=arange(-0.5*data_record_length,+0.5*data_record_length,0.1)
   count=-1
   ll=[]
   max_val  = -1.e10
@@ -461,5 +461,73 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 #################################
 #END def emcee_delay_estimator(...)
 
+#########################################
+#SIMULATION FUNCTIONS
+#########################################
 
-import argparse
+def hubble_obs_sched(num_orbits):
+  t_sample=[0.] #initialize time sampling array
+  t=[0.] #initialize observation time array
+  T_orbit=90. #in minutes
+  frac_obs=0.6   #fraction of orbit where source is visible
+  t_int=20. # integration time in minutes
+  time_uncertainty = 5. #uncertainty on when the satellite is ready to observe in minutes
+  min_per_day=1./(60.*24) #convert from minutes to days
+  bail=0 #flag for bailing out of the time sampling loop
+  while (bail==0):
+    t_val=t_sample[len(t_sample)-1]+t_int+(random.gauss(0.,time_uncertainty)) #in minutes
+    t_sample.append(t_val)
+    if(np.mod(t_val,T_orbit)<frac_obs*T_orbit):
+      t.append(t_val)
+    if(t_val>num_orbits*T_orbit): bail=1
+  t=np.array(t)*min_per_day
+  return t
+
+def X_int(delta_t,X_0, tau, avg_mag, sigma, Nsteps):
+  #print delta_t, tau
+  num_steps=10*int(1+delta_t/tau)
+  if(num_steps>Nsteps):
+    num_steps=Nsteps
+    print 'X_int WARNING: accurate statistics requires Nsteps>1000 steps delta_t=%1.2e, tau=%1.2e'%(delta_t, tau)
+  ds = delta_t/Nsteps
+  s=arange(Nsteps, dtype=float64)*ds
+  dB=array([random.gauss(0.,sqrt(ds)) for _ in xrange(Nsteps)])
+  #print '%1.2e\t%1.2e\t%1.2e'%(cumsum(dB)[Nsteps-1]/Nsteps, sqrt(cumsum(dB**2)[Nsteps-1]/Nsteps-(cumsum(dB)[Nsteps-1]/Nsteps)**2), ds)
+  x1 = exp(-delta_t/tau)*X_0
+  x2 = avg_mag*(1.-exp(-delta_t/tau))
+  x3 = sigma*cumsum( exp(-(delta_t-s)/tau)*dB )[Nsteps-1]
+  return x1+x2+x3
+  
+def drw_lightcurve(time_array, X_0, tau, sigma, avg_mag, redshift, Nsteps): 
+  # convert parameters to rest frame
+  tau_rest=tau*1./(1.+redshift)
+  sigma_rest=sigma*sqrt(1.+redshift)
+  avg_mag_rest=avg_mag
+  t_rest=time_array*1./(1.+redshift)
+  X=[X_0]
+  for k in range(1,len(time_array)):
+    X.append(X_int(t_rest[k]-t_rest[k-1], X[k-1], tau_rest, avg_mag_rest, sigma_rest, Nsteps))
+  X=array(X)
+  return X 
+  
+def delayed_lightcurve(time_array, delay, delta_mag, redshift, tau, avg_mag, sigma, Nsteps):
+    t1=time_array.copy()
+    t2=time_array.copy() - delay
+    id1=zeros(len(t1))
+    id2=ones(len(t1))
+    
+    t_cat=concatenate([t1,t2])
+    id_cat=concatenate([id1,id2])
+    
+    #time order the array
+    t_cat_sort  =  array([x for (x,y) in sorted(zip(t_cat,id_cat))])
+    id_cat_sort =  array([y for (x,y) in sorted(zip(t_cat,id_cat))])
+    
+    X_0 = random.gauss( avg_mag, sigma*sqrt(tau/2.) )
+    lc=drw_lightcurve(t_cat_sort, X_0, tau, sigma, avg_mag, redshift, Nsteps)
+    
+    lc1 = array([y for (x,y) in zip(id_cat_sort,lc) if x==0.])
+    lc2 = array([y for (x,y) in zip(id_cat_sort,lc) if x==1.])
+    
+    lc2+=delta_mag
+    return lc1,lc2
