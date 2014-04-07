@@ -34,7 +34,7 @@ if __name__ == "__main__":
     err2 = args.photometricerror*ones(len(time_array))
     #errorbar(time_array, lc1, err1, fmt='b.')
     #errorbar(time_array, lc2, err2, fmt='r.')
-    emcee_delay_estimator(time_array, mag1,err1,mag2,err2,args.outputtag)
+    emcee_delay_estimator(time_array, mag1_dat,err1,mag2_dat,err2,args.outputtag)
     #show()
 
     
