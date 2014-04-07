@@ -523,7 +523,7 @@ def delayed_lightcurve(time_array, delay, delta_mag, redshift, tau, avg_mag, sig
     t_cat_sort  =  array([x for (x,y) in sorted(zip(t_cat,id_cat))])
     id_cat_sort =  array([y for (x,y) in sorted(zip(t_cat,id_cat))])
     
-    X_0=avg_mag
+    X_0 = random.gauss( avg_mag, sigma*sqrt(tau/2.) )
     lc=drw_lightcurve(t_cat_sort, X_0, tau, sigma, avg_mag, redshift, Nsteps)
     
     lc1 = array([y for (x,y) in zip(id_cat_sort,lc) if x==0.])
