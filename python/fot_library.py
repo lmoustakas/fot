@@ -213,7 +213,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print ''
   print 'time series is %1.2f days long'%(t[len(t)-1]-t[0])
   print 'with  %d data points'%(len(t))
-  nbins=int(len(t)/50.)
+  nbins=max(10,int(len(t)/50.))
   fig=figure()
   counts, bin_vals, somemore =hist(log10(diff(t)), nbins)
   xlabel('Time Between Measurments, log10(days)')
@@ -389,15 +389,18 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print '\tErrors based on 16th, 50th, and 84th percentile'
   print '\tParam     \tMC_rec\terr_up\terr_low'
   print '\tdelay     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delay[0], mc_delay[1], mc_delay[2])
+  print '\tavg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   print '\tdelta_mag \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
   print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
   print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
-  print '\tavg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
 
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"],
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
-  fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
+  #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
+  #reorder variables for presentation purposes
+  fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
   fig.savefig(outputdir+"burn_in_triangle_%s.png"%(output_tag))
+  
 
   sampler.reset()
   
@@ -418,10 +421,10 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'Errors based on 16th, 50th, and 84th percentile'
   print 'Param     \tMC_rec\terr_up\terr_low'
   print 'delay     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_delay[0], mc_delay[1], mc_delay[2])
+  print 'avg_mag   \t%1.5e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   print 'delta_mag \t%1.5e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
   print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
   print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
-  print 'avg_mag   \t%1.5e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   #figure(2)
   #for i in range(ndim):
       #figure()
@@ -429,7 +432,10 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
       #title("Dimension {0:d}".format(i))
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"],
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
-  fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
+  #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
+  #reorder variables for presentation purposes
+  #samples[:,[0,1,2,3,4]] = samples[:,[0,4,1,2,3]]
+  fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
   fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
   
   fig = figure()
