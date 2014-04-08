@@ -25,7 +25,6 @@ import random
 import datetime 
 
 rcParams['font.size']=14
-#rcParams['axes.formatter.useoffset'] = False
 rcParams['legend.fontsize']=14
 rcParams['legend.borderpad']=0.1
 rcParams['legend.borderaxespad']=0.
@@ -399,7 +398,14 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   #reorder variables for presentation purposes
-  fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
+  fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
+  #print fig.get_axes()
+  count=0
+  # REMOVE OFFSET FROM TRIANGLE PLOTS
+  for ax in fig.get_axes():
+    count+=1
+    if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
   fig.savefig(outputdir+"burn_in_triangle_%s.png"%(output_tag))
   
 
@@ -437,6 +443,12 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   #reorder variables for presentation purposes
   #samples[:,[0,1,2,3,4]] = samples[:,[0,4,1,2,3]]
   fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
+  # REMOVE OFFSET FROM TRIANGLE PLOTS
+  count=0
+  for ax in fig.get_axes():
+    count+=1
+    if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
   fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
   
   fig = figure()
