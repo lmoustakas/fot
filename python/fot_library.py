@@ -417,11 +417,11 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
 
   print 'Errors based on 16th, 50th, and 84th percentile'
   print 'Param     \tMC_rec\terr_up\terr_low'
-  print 'delay     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delay[0], mc_delay[1], mc_delay[2])
-  print 'delta_mag \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
-  print 'sigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
-  print 'tau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
-  print 'avg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
+  print 'delay     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_delay[0], mc_delay[1], mc_delay[2])
+  print 'delta_mag \t%1.5e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
+  print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
+  print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print 'avg_mag   \t%1.5e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   #figure(2)
   #for i in range(ndim):
       #figure()
