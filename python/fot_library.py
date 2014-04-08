@@ -406,6 +406,26 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
     count+=1
     if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    
+  ax1 = fig.add_subplot(5,2,2)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t,lc2,e2, fmt='r.', ms=3, label='light curve 2')
+  miny=min(min(lc1-e1),min(lc2-e2))
+  maxy=max(max(lc1+e1),max(lc2+e2))
+  ylim(miny,maxy+0.5*(maxy-miny))
+  legend(loc=1)
+  setp(ax1.get_xticklabels(), visible=False) 
+  ax2 = fig.add_subplot(5,2,4, sharex=ax1)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  miny=min(min(lc1-e1),min(lc2-delta_mag-e2))
+  maxy=max(max(lc1+e1),max(lc2-delta_mag+e2))
+  ylim(miny,maxy+0.5*(maxy-miny))
+  xlabel('time, days')
+  ylabel('magnitude')
+  legend(loc=1)
+
+    
   fig.savefig(outputdir+"burn_in_triangle_%s.png"%(output_tag))
   
 
@@ -449,6 +469,25 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
     count+=1
     if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    
+  ax1 = fig.add_subplot(5,2,2)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t,lc2,e2, fmt='r.', ms=3, label='light curve 2')
+  miny=min(min(lc1-e1),min(lc2-e2))
+  maxy=max(max(lc1+e1),max(lc2+e2))
+  ylim(miny,maxy+0.5*(maxy-miny))
+  legend(loc=1)
+  setp(ax1.get_xticklabels(), visible=False) 
+  ax2 = fig.add_subplot(5,2,4, sharex=ax1)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
+  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  miny=min(min(lc1-e1),min(lc2-delta_mag-e2))
+  maxy=max(max(lc1+e1),max(lc2-delta_mag+e2))
+  ylim(miny,maxy+0.5*(maxy-miny))
+  xlabel('time, days')
+  ylabel('magnitude')
+  legend(loc=1)
+    
   fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
   
   fig = figure()
