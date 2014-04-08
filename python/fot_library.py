@@ -167,7 +167,7 @@ def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, p
   t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
   return kelly_ll([sig,tau,avg_mag], t, x, e)
 
-def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
+def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, delay_prior=None):
   outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
@@ -263,12 +263,17 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   title('Delay Likelihood Scan\nsigma=%1.2f, tau=%1.2f, avg_mag=%1.2f'%(c_sig, c_tau, c_avg_lc))
   k_max=argmax(ll)
   plot([del_array[k_max],del_array[k_max]],[min(ll),max(ll)],'k--')
+  if(delay_prior != None): 
+    plot([delay_prior,delay_prior],[min(ll),max(ll)],'r-')
   print 'BEST DELAY=%1.5e'%(del_array[k_max])
+  if(delay_prior != None):   print 'DELAY PRIOR=%1.5e'%(delay_prior)
   subplot(312)
   delta_delay=del_array[1]-del_array[0]
   k_lo = k_max - int(50/(delta_delay)+1)
   k_up = k_max + int(50/(delta_delay)+1)
   plot(del_array[k_lo:k_up],ll[k_lo:k_up],'b-')
+  if(delay_prior != None): 
+    plot([delay_prior,delay_prior],[min(ll),max(ll)],'r-')
   xlabel('delay, days')
   ylabel('likelihood')
   #title('Delay Likelihood Scan\nsigma=%1.2f, tau=%1.2f, avg_mag=%1.2f'%(c_sig, c_tau, c_avg_lc))
@@ -279,6 +284,8 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   k_lo = k_max - int(5/(delta_delay)+1)
   k_up = k_max + int(5/(delta_delay)+1)
   plot(del_array[k_lo:k_up],ll[k_lo:k_up],'b-')
+  if(delay_prior != None): 
+    plot([delay_prior,delay_prior],[min(ll),max(ll)],'r-')
   xlabel('delay, days')
   ylabel('likelihood')
   #title('Delay Likelihood Scan\nsigma=%1.2f, tau=%1.2f, avg_mag=%1.2f'%(c_sig, c_tau, c_avg_lc))
@@ -286,7 +293,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   ylim(max(ll)-1000.,max(ll))
   fig.savefig(outputdir+"delay_search_%s.png"%(output_tag))
   delay = del_array[k_max]
-
+  if(delay_prior != None): delay = delay_prior
 
   #ESTIMATES OF QSR LIGHT CURVE
   delta_mag = (op_avg_lc2-op_avg_lc1)
@@ -417,9 +424,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   setp(ax1.get_xticklabels(), visible=False) 
   ax2 = fig.add_subplot(5,2,4, sharex=ax1)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
-  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
-  miny=min(min(lc1-e1),min(lc2-delta_mag-e2))
-  maxy=max(max(lc1+e1),max(lc2-delta_mag+e2))
+  errorbar(t-mc_delay[0], lc2-mc_delta_mag[0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  miny=min(min(lc1-e1),min(lc2-mc_delta_mag[0]-e2))
+  maxy=max(max(lc1+e1),max(lc2-mc_delta_mag[0]+e2))
   ylim(miny,maxy+0.5*(maxy-miny))
   xlabel('time, days')
   ylabel('magnitude')
@@ -452,6 +459,8 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   print 'delta_mag \t%1.5e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
   print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
   print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print ''
+  print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2))
   #figure(2)
   #for i in range(ndim):
       #figure()
@@ -480,9 +489,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag):
   setp(ax1.get_xticklabels(), visible=False) 
   ax2 = fig.add_subplot(5,2,4, sharex=ax1)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
-  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
-  miny=min(min(lc1-e1),min(lc2-delta_mag-e2))
-  maxy=max(max(lc1+e1),max(lc2-delta_mag+e2))
+  errorbar(t-mc_delay[0], lc2-mc_delta_mag[0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  miny=min(min(lc1-e1),min(lc2-mc_delta_mag[0]-e2))
+  maxy=max(max(lc1+e1),max(lc2-mc_delta_mag[0]+e2))
   ylim(miny,maxy+0.5*(maxy-miny))
   xlabel('time, days')
   ylabel('magnitude')

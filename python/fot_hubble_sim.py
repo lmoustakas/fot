@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("-n","--numorbits",help="Number of Hubble orbits to be used",type=int)
     parser.add_argument("-p","--photometricerror",help="Photometric error uncertainty (e.g. 0.02) [mag]",type=float)
     parser.add_argument("-o","--outputtag",help="Output tag, in quotes",type=str)
+    parser.add_argument("-dtp","--delayprior",help="Delay prior for emcee [optional]",type=float)
     args=parser.parse_args()
     Nsteps=1000
     print ''
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     err2 = args.photometricerror*ones(len(time_array))
     #errorbar(time_array, lc1, err1, fmt='b.')
     #errorbar(time_array, lc2, err2, fmt='r.')
-    emcee_delay_estimator(time_array, mag1_dat,err1,mag2_dat,err2,args.outputtag)
+    emcee_delay_estimator(time_array, mag1_dat,err1,mag2_dat,err2,args.outputtag, delay_prior = args.delayprior)
     #show()
 
     
