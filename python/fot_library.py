@@ -25,6 +25,7 @@ import random
 import datetime 
 
 rcParams['font.size']=14
+rcParams['axes.formatter.useoffset'] = False
 rcParams['legend.fontsize']=14
 rcParams['legend.borderpad']=0.1
 rcParams['legend.borderaxespad']=0.
