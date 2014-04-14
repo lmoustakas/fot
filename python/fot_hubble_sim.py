@@ -33,6 +33,14 @@ if __name__ == "__main__":
     mag2_dat = mag2 + array([random.gauss(0.,args.photometricerror) for _ in xrange(len(time_array))])
     err1 = args.photometricerror*ones(len(time_array))
     err2 = args.photometricerror*ones(len(time_array))
+    
+    import numpy
+    import datetime
+    t0 = datetime.datetime.now()
+    date_string = t0.strftime("_%Y_%m_%d_%H:%M")
+    print numpy.arange(0.,1.,0.1)
+    numpy.savez('sim_data_%s%s'%(args.outputtag,date_string), time_array=time_array, mag1=mag1, mag2=mag2, mag1_dat=mag1_dat, mag2_dat=mag2_dat)
+    #numpy.savez('test', time_array, mag1, mag2, mag1_dat, mag2_dat, 'time_array', 'mag1', 'mag2', 'mag1_dat', 'mag2_dat')
     #errorbar(time_array, lc1, err1, fmt='b.')
     #errorbar(time_array, lc2, err2, fmt='r.')
     emcee_delay_estimator(time_array, mag1_dat,err1,mag2_dat,err2,args.outputtag, delay_prior = args.delayprior)
