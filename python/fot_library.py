@@ -311,6 +311,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, delay_prior=None):
   print ''
 
   ct, cx, ce = merge(t, lc1, e1, lc2, e2, delay, delta_mag)
+  '''
   c_sig, c_tau, c_avg_lc = optimize_lc_param_estimate(ct,cx,ce)
   sigma   = abs(c_sig)
   tau     = c_tau
@@ -325,7 +326,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, delay_prior=None):
   print 'sigma      = %1.2f'%(sigma)
   print ''
   #exit()
-
+  '''
   #PLOT LIGHT CURVES
   fig = figure()
   ax=subplot(311)
