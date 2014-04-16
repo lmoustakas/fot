@@ -167,7 +167,12 @@ def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, p
   t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
   return kelly_ll([sig,tau,avg_mag], t, x, e)
 
-def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, delay_prior=None):
+def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, 
+			  delay_prior,     delay_prior_min,     delay_prior_max,
+			  delta_mag_prior, delta_mag_prior_min, delta_mag_prior_max, 
+			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
+			  tau_prior,       tau_prior_min,       tau_prior_max, 
+			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max):
   outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
@@ -176,185 +181,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, delay_prior=None):
   output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
 
-  crude_sig1, crude_tau1, crude_avg_lc1 = crude_lc_param_estimate(t,lc1)
-  crude_sig2, crude_tau2, crude_avg_lc2 = crude_lc_param_estimate(t,lc2)
-
-  print ''
-  print 'CRUDE LIGHT CURVE PARAMETERS'
-  print '----------------------------'
-  print 'parameter lc1   \tlc2'
-  print '----------------------------'
-  print 'sigma     %+1.2f \t%+1.2f'%(crude_sig1,    crude_sig2)
-  print 'tau       %+1.2f \t%+1.2f'%(crude_tau1,    crude_tau2)
-  print 'avg_mag   %+1.2f \t%+1.2f'%(crude_avg_lc1, crude_avg_lc2)
-  print ''
-
-  print ''
-  print 'BEGINNING LIGHT CURVE PARAMETER OPTIMIZATION'
-  print ''
-  op_sig1, op_tau1, op_avg_lc1 = optimize_lc_param_estimate(t,lc1,e1)
-  op_sig2, op_tau2, op_avg_lc2 = optimize_lc_param_estimate(t,lc2,e2)
-
-  op_sig1=abs(op_sig1)
-  op_sig2=abs(op_sig2)
-  print ''
-  print 'OPTIMIZED LIGHT CURVE PARAMETERS'
-  print '--------------------------------'
-  print 'parameter lc1   \tlc2'
-  print '--------------------------------'
-  print 'sigma     %+1.2f \t%+1.2f'%(op_sig1,    op_sig2)
-  print 'tau       %+1.2f \t%+1.2f'%(op_tau1,    op_tau2)
-  print 'avg_mag   %+1.2f \t%+1.2f'%(op_avg_lc1, op_avg_lc2)
-  print ''
-
-  print '\nProcess Started on', t0
-  print 'It is now         ', datetime.datetime.now()
-  #ESTIMATE DELAY
-  print ''
-  print 'time series is %1.2f days long'%(t[len(t)-1]-t[0])
-  print 'with  %d data points'%(len(t))
-  nbins=max(10,int(len(t)/50.))
-  fig=figure()
-  counts, bin_vals, somemore =hist(log10(diff(t)), nbins)
-  xlabel('Time Between Measurments, log10(days)')
-  fig.savefig(outputdir+"delta_t_histogram_%s.png"%(output_tag))
-  
-  # ESTIMATE THE MODE OF THE DISTRIBUTION
-  n_max=argmax(counts)
-  mode=bin_vals[n_max]
-  print 'The most common sample time distance is %1.2f days within the range of [%1.2f,%1.2f] days'%(10**mode, 10**(0.5*(bin_vals[n_max-1]+bin_vals[n_max])), 10**(0.5*(bin_vals[n_max]+bin_vals[n_max+1])))
-  print ''
-  
-  #delta_delay=(10**mode/50.)
-  #print 'Scanning for initial delay estimate with delay step %1.2f'%(delta_delay)
-  #del_array=arange(-1000.,1000.1,delta_delay)
-  #del_array=arange(-1000.,1000.1,10.)
-  data_record_length = t[len(t)-1]-t[0]
-  del_array=arange(-0.5*data_record_length,+0.5*data_record_length,0.1)
-  count=-1
-  ll=[]
-  max_val  = -1.e10
-  c_sig    = 0.5*(op_sig1+op_sig2)
-  c_tau    = 0.5*(op_tau1+op_tau2)
-  c_avg_lc = (op_avg_lc1)
-  delta_mag=(op_avg_lc2-op_avg_lc1)
-  for delta in del_array:
-    count+=1
-    ct, cx, ce = merge(t, lc1, e1, lc2, e2, delta, delta_mag)
-    val = kelly_ll([c_sig, c_tau, c_avg_lc] , ct, cx, ce)
-    if(val>max_val):
-      max_val=val
-    if(count==int(0.01*len(del_array))): print '1% done'
-    if(count==int(0.10*len(del_array))): print '10% done'
-    if(count==int(0.25*len(del_array))): print '25% done'
-    if(count==int(0.50*len(del_array))): print '50% done'
-    if(count==int(0.75*len(del_array))): print '75% done'
-    ll.append(val)
-  print 'DONE'
-  print '\nProcess Started on', t0
-  print 'It is now         ', datetime.datetime.now()
-  print ''
-  #PLOT DELAY SEARCH
-  fig=figure()
-  subplot(311)
-  plot(del_array,ll,'b-')
-  xlabel('delay, days')
-  ylabel('likelihood')
-  title('Delay Likelihood Scan\nsigma=%1.2f, tau=%1.2f, avg_mag=%1.2f'%(c_sig, c_tau, c_avg_lc))
-  k_max=argmax(ll)
-  plot([del_array[k_max],del_array[k_max]],[min(ll),max(ll)],'k--')
-  if(delay_prior != None): 
-    plot([delay_prior,delay_prior],[min(ll),max(ll)],'r-')
-  print 'BEST DELAY=%1.5e'%(del_array[k_max])
-  if(delay_prior != None):   print 'DELAY PRIOR=%1.5e'%(delay_prior)
-  subplot(312)
-  delta_delay=del_array[1]-del_array[0]
-  k_lo = k_max - int(50/(delta_delay)+1)
-  k_up = k_max + int(50/(delta_delay)+1)
-  plot(del_array[k_lo:k_up],ll[k_lo:k_up],'b-')
-  if(delay_prior != None): 
-    plot([delay_prior,delay_prior],[min(ll),max(ll)],'r-')
-  xlabel('delay, days')
-  ylabel('likelihood')
-  #title('Delay Likelihood Scan\nsigma=%1.2f, tau=%1.2f, avg_mag=%1.2f'%(c_sig, c_tau, c_avg_lc))
-  plot([del_array[k_max],del_array[k_max]],[min(ll),max(ll)],'k--')
-  ylim(min(ll[k_lo:k_up]),ll[k_max]+100.)
-  subplot(313)
-  delta_delay=del_array[1]-del_array[0]
-  k_lo = k_max - int(5/(delta_delay)+1)
-  k_up = k_max + int(5/(delta_delay)+1)
-  plot(del_array[k_lo:k_up],ll[k_lo:k_up],'b-')
-  if(delay_prior != None): 
-    plot([delay_prior,delay_prior],[min(ll),max(ll)],'r-')
-  xlabel('delay, days')
-  ylabel('likelihood')
-  #title('Delay Likelihood Scan\nsigma=%1.2f, tau=%1.2f, avg_mag=%1.2f'%(c_sig, c_tau, c_avg_lc))
-  plot([del_array[k_max],del_array[k_max]],[min(ll),max(ll)],'k--')
-  ylim(max(ll)-1000.,max(ll))
-  fig.savefig(outputdir+"delay_search_%s.png"%(output_tag))
-  delay = del_array[k_max]
-  if(delay_prior != None): delay = delay_prior
-
-  #ESTIMATES OF QSR LIGHT CURVE
-  delta_mag = (op_avg_lc2-op_avg_lc1)
-  sigma = abs(c_sig)
-  tau = c_tau
-  avg_mag=op_avg_lc1
-  print ''
-  print 'INITIAL PARAMETERS (average of lc1 and lc2)'
-  print '-------------------------------------------'
-  print 'delay      = %1.2f'%(delay)
-  print 'delta_mag  = %1.2f'%(delta_mag)
-  print 'avg_mag    = %1.2f'%(avg_mag)
-  print 'tau        = %1.2f'%(tau)
-  print 'sigma      = %1.2f'%(sigma)
-  print ''
-
-  ct, cx, ce = merge(t, lc1, e1, lc2, e2, delay, delta_mag)
-  '''
-  c_sig, c_tau, c_avg_lc = optimize_lc_param_estimate(ct,cx,ce)
-  sigma   = abs(c_sig)
-  tau     = c_tau
-  avg_mag = c_avg_lc
-  print ''
-  print 'INITIAL PARAMETERS (optimization of merged light curve)'
-  print '-------------------------------------------------------'
-  print 'delay      = %1.2f'%(delay)
-  print 'delta_mag  = %1.2f'%(delta_mag)
-  print 'avg_mag    = %1.2f'%(avg_mag)
-  print 'tau        = %1.2f'%(tau)
-  print 'sigma      = %1.2f'%(sigma)
-  print ''
-  #exit()
-  '''
-  #PLOT LIGHT CURVES
-  fig = figure()
-  ax=subplot(311)
-  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
-  errorbar(t,lc2,e2, fmt='r.', ms=3, label='light curve 2')
-  legend(loc=1)
-  xlabel('time, day')
-  ylabel('magnitude')
-  #plot(ct,cx,'k.', ms=3)
-  ax=subplot(312)
-  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
-  errorbar(t-delay, lc2-delta_mag, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
-  xlabel('time, day')
-  ylabel('magnitude')
-  legend(loc=1)
- #plot(ct,cx,'k.', ms=3)
-  ax=subplot(313)
-  ct, cx, ce = merge(t, lc1, e1, lc2, e2, delay, delta_mag)
-  errorbar(ct,cx, ce,fmt='b.', ms=3, label = 'merged light curve')
-  xlabel('time, day')
-  ylabel('magnitude')
-  legend(loc=1)
-  fig.savefig(outputdir+"op_light_curves_%s.png"%(output_tag))
-  #show()
-
   def lnprior(_theta):
     _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
-    if delay-0.5*data_record_length<_delay<delay+0.5*data_record_length and delta_mag-1.<_delta_mag<delta_mag+1. and sigma*0.1<_sigma<sigma*10. and tau*0.1<_tau<tau*10. and avg_mag-1.<_avg_mag<avg_mag+1.:
+    if delay_prior_min < _delay < delay_prior_max and delta_mag_prior_min<_delta_mag<delta_mag_prior_max and sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
 	  return 0.0
     return -np.inf
       
@@ -375,9 +204,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, delay_prior=None):
   n_burn_in_iterations = 100
   n_iterations = 1000
   print 'pos'
-  true_vals=[delay, delta_mag, sigma, tau, avg_mag]
+  prior_vals=[delay_prior, delta_mag_prior, sigma_prior, tau_prior, avg_mag_prior]
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
-  pos = [true_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+  pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
   #pos = [[uniform(delay-100,delay+100.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
   #pos = [true_vals + [uniform(-1.e3, 1.e3), uniform(-10.,10.), uniform(0.1,10.), uniform(0.1,800.), uniform(-50.,50.)] for i in range(nwalkers)]
   #uniform([low, high, size])
