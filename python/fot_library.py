@@ -276,7 +276,6 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.chain'
-  np.savez(outputdir+'chain_samples_%s%s'%(output_tag,date_string), sampler.chain[:, int(0.1*n_iterations):, :].reshape((-1, ndim)))
   
   samples = sampler.chain[:, int(0.1*n_iterations):, :].reshape((-1, ndim))
   print len(samples)
@@ -331,6 +330,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
     
   fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
   
+  np.savez(outputdir+'chain_samples_%s%s'%(output_tag,date_string), sampler.chain[:, 0:, :].reshape((-1, ndim)))
+
+  '''
   fig = figure()
   ax=subplot(311)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
@@ -353,7 +355,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   ylabel('magnitude')
   legend(loc=1)
   fig.savefig(outputdir+"mc_light_curves_%s.png"%(output_tag))
-
+  '''
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   #show()
