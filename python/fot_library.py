@@ -277,7 +277,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.chain'
   
-  samples = sampler.chain[:, int(0.1*n_iterations):, :].reshape((-1, ndim))
+  samples = sampler.chain[:, 500:, :].reshape((-1, ndim))
   print len(samples)
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
