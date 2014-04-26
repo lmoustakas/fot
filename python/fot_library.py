@@ -104,7 +104,7 @@ def kelly_estimates(theta, time_array, flux_array, ph_err_array):
     x_hat.append(a[i]*x_hat[i-1] + a[i]*Omega[i-1]/(Omega[i-1]+ph_err_array[i-2]**2)*(x_star[i-2]-x_hat[i-1]))
   #print 'mean a %1.2f'%(np.mean(a[1:len(t)+1]))
   #print 'mean Omega %1.2e'%(np.mean(Omega[1:len(t)+1]))
-  return x_hat[1:len(t)+1], np.sqrt(Omega[1:len(t)+1]+ph_err_array**2)
+  return array(x_hat[1:len(t)+1]), np.sqrt(Omega[1:len(t)+1]+ph_err_array**2)
 
 ################################################################################################
 #from pylab import * #import for testing only.
