@@ -1,6 +1,7 @@
 %\documentclass[12pt,preprint]{aastex}
 \documentclass{emulateapj}
 %\usepackage{apjfonts}
+\usepackage{amsmath}
 \usepackage{natbib}
 \usepackage{graphicx}
 \usepackage{bm}
@@ -129,11 +130,42 @@ Figure of sample light curves and reconstructed parameters.
 
 \section{Measuring Time Delays}
 
+The likelihood function used to reconstruct the quasar light curve damped random walk parameters is given by Kelly et al. 2009. Written as a log-likelihood
+\begin{align} 
+& \log\mathcal{L}_{K}(\langle X\rangle, \sigma,\tau | X) = \nonumber \\
+& \ \ \ \ \ \ \ \ -\frac{1}{2}\sum_{i=1}^{n}\left\{
+\frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
++ 
+\log\left[2\pi\left(\Omega_i+\sigma_i^2\right]\right)
+\right\}
+\end{align}
+where 
+% \begin{equation}
+\begin{alignat}{1}
+& x_{i}^{*} = x_i-\langle X \rangle \\
+& \hat{x}_0 = 0   \\
+& \Omega_{0}=\frac{\tau\sigma^2}{2} \\
+& \hat{x}_i = a_i\hat{x}_{i-1} + \frac{a_i\Omega_{i-1}}{\Omega_{i-1}+\sigma^2_{i-1}} \left(x^{*}_{i-1}-\hat{x}_{i-1}\right) \\
+& \Omega_{i}=\Omega_{0}\left(1-a_{i}^2\right) + a_{i}^2\Omega_{i-1}\left(1-\frac{\Omega_{i-1}}{\Omega_{i-1}+\sigma_{i-1}^2}\right) \\
+& a_i = e^{-\left(t_i-t_{i-1}\right)/\tau} \\
+% & a_i = \exp\left(\frac{t_i-t_{i-1}}{\tau}\right) \\
+\end{alignat}
+The reconstruction of time-delays in this analysis relies on entirely on the physics of quasar light delay fluctuations. The light curves of two images of a quasar are merged according to hypothesized delay and magntide offset. A posterior probability is then calculated for the merged light curve under different hypotheses for the parameters $\langle X\rangle$, $\tau$, and $\sigma$.
+\begin{align}
+& \mathcal L (\Delta t, \Delta m, \sigma, \tau, \langle X \rangle | X_1, X_2)  = \nonumber \\
+& \mathcal{L}_{K} \left( \sigma, \tau, \langle X \rangle  | M(\Delta t,\Delta m ; X_1, X_2) \right)
+\end{align}
 
-
+The posterior probability is given by
+\begin{align}
+& p(X_1, X_2 | \Delta t, \Delta m, \langle X \rangle, \sigma,\tau) \propto \nonumber \\
+&  \ \ \ \ \ \ \mathcal{L}(\Delta t, \Delta m, \langle X \rangle, \sigma,\tau | X_1, X_2)\times p(\Delta t, \Delta m, \langle X \rangle, \sigma,\tau)
+\end{align}
+The assignement of priors is flat in $\Delta t$. The parameters $\sigma$ and $\tau$ are scale parameters so their priors are given by $p(\sigma)=\sigma^{-1}$ and $p(\tau)=\tau^{-1}$. The parameter $\langle X \rangle$ and $\Delta m$ are also scale parameters but they in logarithmic units and therefore are assigned flat priors.
 \section{Running the Experiment}\label{}
 
 Demonstrate how well we recover structural parameters we put in, showing triangle diagrams.
+
 
 \section{Discussion and Conclusions}\label{sec:disc}
 
@@ -143,6 +175,7 @@ This work was carried out at Jet Propulsion Laboratory, California
 Institute of Technology, under a contract with NASA.  Thank conversations with Francis-Yan, Chuck Keeton, Frederic Courbin. 
 
 \bibliographystyle{apj}
+
 \bibliography{/Users/leonidas/Dropbox/bibdesk/moustakasbibs}
 
 \end{document}
