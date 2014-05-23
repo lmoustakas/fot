@@ -37,7 +37,7 @@
   Technology, 4800 Oak Grove Dr, MS 169-506, Pasadena, CA 91109} 
 
 \begin{abstract}
-Methodology for inferring time delays in time-streams of photometric
+Gravitational lensing on astronomical scales Methodology for inferring time delays in time-streams of photometric
 measurements in a multiply imaged quasar.  Bayesian
 inference. Comparison to other techniques including matrix inversion.
 Realistic simulated light curves produced, and recovery efficiency
@@ -77,31 +77,70 @@ Microlensing effects and considerations.  Main conclusions.
 % \end{center}
 % \end{figure}
 
+Context. Lensing. Distances light travels, and differences in arrival
+time versus relative distance differences.
 
+History and realization. Power of time delays for H0, Refsdal, leading into modern
+era of cosmology.  Relevance of lenses for present discussions of
+cosmography, interesting tension between Planck and lensing results,
+quote the results on that.  Potential improvement in quality of
+results with greater time delay precision, in the limit of mass model
+and environment characterization improvements. 
 
-For the purposes of this work, we adopt 
+Looking into the future: Dark matter study, New Channel, driving us to
+time delay precisions of hours or better.  Cf Oguri's compilation,
+cosmograil precision from ground-based campaigns to date. Past and current work. 
+Techniques generally developed to date, including interpolating, cross-correlations, maximum likelihood (Fasscnacht, COSMOGRAIL, Hojatti+Kim+Linder, others). Naturalness of setting up a Bayesian approach, if there is a clear predictive model for the time variations of quasar light curves. 
 
+\subsection{Introducing RXJ1131}
 
-\section{The Analysis Framework}\label{}
-\subsection{Bayesian Inference}\label{}
-\subsection{MCMC Sampling}\label{}
+Why it's an interesting target, H0, dark matter, observations with Hubble etc, models for it predicting its observational parameters including the time delays, the interesting thing pointed out in KM09 that an order-reversal could be quite interesting. 
 
-\section{Simulating Light Curves}\label{}
-\subsection{Quasar physics}\label{}
+Figures: HST and model plot. 
+
+Possibly a table showing existing observations/measurements, drawn from literature. 
+
+\subsection{Bayesian Analysis Framework}
+
+Bayes rule, model and observational parameters, MCMC implementation. The things that we need -- ie a predictive model that connects the parameter sets, and an understanding of the obsrevational uncertainties.
+
+\section{Simulating light curves}
+\subsection{Quasar physics}
+
+This is a key ingredient, since the physical structure of an accreting supermassive black hole determines the character of the light variations, and we need to get it right if we are forecasting how well we can recover information. 
+
+Kelly's damped random walk technique, parametrization for the light curve generation and (brief) motivation/intperpretation of these parameters, literature vetting and testing these. 
 \subsection{Observing cadences and campaigns}\label{}
+
+Choices for observing campaigns (remember, this is just for straight light curves at the moment. )
+
+Generally on how this may be set up for different circumstances, and what types of campaigns may apply to 1131, including what campaigns have been implemented (e.g. COSMOGRAIL). 
+
 \subsection{Photometric uncertainties}\label{}
+
+Random and systematic, possibility of covariances, and so on.  
+
+Relative consequences or advantages of ground versus space. 
+
+Table summarizing the cadence/campaign/uncertainty combinations we adopt in this paper. 
+
+Figure of sample light curves and reconstructed parameters. 
+
+
+\section{Measuring Time Delays}
+
+
 
 \section{Running the Experiment}\label{}
 
+Demonstrate how well we recover structural parameters we put in, showing triangle diagrams.
 
-\section{Discussions}\label{sec:disc}
-
-\section{Conclusions}\label{sec:conc}
+\section{Discussion and Conclusions}\label{sec:disc}
 
 \acknowledgements
 
 This work was carried out at Jet Propulsion Laboratory, California
-Institute of Technology, under a contract with NASA.
+Institute of Technology, under a contract with NASA.  Thank conversations with Francis-Yan, Chuck Keeton, Frederic Courbin. 
 
 \bibliographystyle{apj}
 \bibliography{/Users/leonidas/Dropbox/bibdesk/moustakasbibs}
