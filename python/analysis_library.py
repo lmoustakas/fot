@@ -37,6 +37,17 @@ def hist_param(array, y, norm=True):
 	if(norm): p/=max(p) 
 	return p,d
 
+def read_sim_hubble_light_curve(filename):
+	npzfile = numpy.load(filename)
+	print 'npzfile.files', npzfile.files
+	mag1 = npzfile['mag1']
+	mag2 = npzfile['mag2']
+	time_array = npzfile['time_array']
+	mag1_dat = npzfile['mag1_dat']
+	mag2_dat = npzfile['mag2_dat']
+	return mag1, mag2, time_array, mag1_dat, mag2_dat
+
+
 def test(chain_file_name):
 	samples = get_chain(chain_file_name)
 	delay, d_mag, sigma, tau, avg_mag = get_parameter_samples(dirc, fnm, img1, img2, pmu)
