@@ -39,7 +39,7 @@ def hist_param(array, y, norm=True):
 
 def read_sim_hubble_light_curve(filename):
 	npzfile = numpy.load(filename)
-	print 'npzfile.files', npzfile.files
+	#print 'npzfile.files', npzfile.files
 	mag1 = npzfile['mag1']
 	mag2 = npzfile['mag2']
 	time_array = npzfile['time_array']
@@ -50,7 +50,7 @@ def read_sim_hubble_light_curve(filename):
 
 def test(chain_file_name):
 	samples = get_chain(chain_file_name)
-	delay, d_mag, sigma, tau, avg_mag = get_parameter_samples(dirc, fnm, img1, img2, pmu)
+	delay, d_mag, sigma, tau, avg_mag = get_parameter_samples(samples)
 	nwalkers     = 100
 	n_iterations = 1000
 	k = range(0,len(delay))

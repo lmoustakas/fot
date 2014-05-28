@@ -331,7 +331,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
     
   fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
   
-  np.savez(outputdir+'chain_samples_%s%s'%(output_tag,date_string), sampler.chain[:, 0:, :].reshape((-1, ndim)))
+  np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
 
   '''
   fig = figure()
