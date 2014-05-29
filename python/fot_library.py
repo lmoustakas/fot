@@ -182,10 +182,16 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
 
+#  def lnprior(_theta):
+#    _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
+#    if delay_prior_min < _delay < delay_prior_max and delta_mag_prior_min<_delta_mag<delta_mag_prior_max and sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
+#	  return 0.0
+#    return -np.inf
+
   def lnprior(_theta):
     _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
     if delay_prior_min < _delay < delay_prior_max and delta_mag_prior_min<_delta_mag<delta_mag_prior_max and sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
-	  return 0.0
+	  return 0.0  #sigma and tau are scale parameters. Also true of delta_mag and avg_mag, but they are already in logarithmic units.
     return -np.inf
       
   def lnprob(theta, t, lc1, err1, lc2, err2):
