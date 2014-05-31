@@ -1,22 +1,24 @@
 from pylab import *
 from analysis_library import *
 
-fnm       = '../outputs/sim_data_hubble_test_2014_05_28_16:46.npz'
-chain_fnm = '../outputs/chain_samples_hubble_test_2014_05_28_16:46.npz'
-
 def single_obs_view(fnm,chain_fnm):
+
 	mag1, mag2, time_array, mag1_dat, mag2_dat = read_sim_hubble_light_curve(fnm)
-	figure(1)
-	plot(time_array, mag1_dat,'.')
-	plot(time_array, mag2_dat, '.')
 
 
-	figure(2)
 	nwalkers     = 100
 	n_iterations = 1000
 	n_iteration_filter=600
 
 	samples = get_chain(chain_fnm)
+	print len(samples[:,[0,4,1,2,3]])
+	figure()
+	subplot(311)
+	plot(samples[:,[0]],',')
+	subplot(312)
+	array_index = range(0,len(samples[:,[0]]))
+	plot(samples[:,[0]][mod(array_index,1000)>900],',')
+	plot([0,1000],[1.5,1.5],'k--')
 	delay, d_mag, sigma, tau, avg_mag = get_parameter_samples(samples)
 
 	subplot(521)
@@ -75,6 +77,22 @@ def single_obs_view(fnm,chain_fnm):
 	subplot(326)
 	plot(time_array, mag1_dat,'b.', mec='b',         ms=5)
 	plot(time_array-2.995, mag2_dat-0.3605, 'r.', mec='r', ms=5)
+
+	filtered_samples = samples[mod(array_index,1000)>200]
+	#fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
+	fig= triangle.corner(filtered_samples[:,[0,1,4,2,3]], labels=["delay", "$\Delta$m", r"$\langle m \rangle$", "$\sigma$", r"$\tau$"])
+
+	a = axes([.55, .675, .4, .275], axisbg='none')
+	errorbar(time_array, mag1_dat,fmt='b+', yerr=0.02*ones(len(time_array)), mec='b', ms=3)
+	dt = x_dt[argmax(p_dt)]
+	dm = x_dm[argmax(p_dm)]
+	errorbar(time_array-dt, mag2_dat-dm ,fmt='rx', yerr=0.02*ones(len(time_array)), mec='r', ms=3 )
+	title('Light Curves')
+	xlabel('time, days')
+	ylabel('Magnitude, arb. u.')
+	setp(a)
+	show()
+	exit()
 
 	figure(4)
 	subplot(331)
@@ -210,6 +228,19 @@ def ll_plot():
 	fig.savefig('hubble_sim_summary.png')
 	pdfp.close()
 	exit()
+
+#fnm       = '../outputs/sim_data_hubble_test_2014_05_28_16:46.npz'
+#chain_fnm = '../outputs/chain_samples_hubble_test_2014_05_28_16:46.npz'
+
+#fnm       = '../outputs/sim_data_hubble_test_2014_05_29_10:05.npz'
+#chain_fnm = '../outputs/chain_samples_hubble_test_2014_05_29_10:05.npz'
+
+#dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_15_hubble_sim_runs/'
+
+fnm	  = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/sim_data_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21.npz'
+chain_fnm = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/chain_samples_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21_2014_04_16_23:21.npz'
+
+single_obs_view(fnm,chain_fnm)
 
 ll_plot()
 exit()
