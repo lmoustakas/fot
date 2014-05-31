@@ -116,7 +116,7 @@ def read_logs(dirc,num_orbits, ph_uncrtnty):
 	    norb = (f.split('_')[2])
 	    pu = (f.split('_')[4])
 	    if (tag=='log' and norb == num_orbits and ph_uncrtnty == pu and os.stat(f).st_size!=0):
-	      print f
+	      #print f
 	      if(os.stat(f).st_size!=0):
 	        #print int(f.split('.')[0].split('_r')[1])
 	        run_num = int(f.split('.')[0].split('_r')[1])
@@ -335,7 +335,6 @@ def ana_ll(dirc, num_orbits, ph_unc, ll_cut, sig_cut, numbins, minval, maxval):
 
 	subplots_adjust(left=None, bottom=None, right=None, top=0.85, wspace=None, hspace=0.5)
 	return coeff[1], coeff[2], len(ll[accept_tot_list])
-
 
 
 

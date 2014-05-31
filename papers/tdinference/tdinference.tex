@@ -176,11 +176,23 @@ Demonstrate how well we recover structural parameters we put in, showing triangl
 \end{figure}
 
 
+The cuts required by for a valid reconstruction are described as follows. We fit a Gaussian curve to the distribution of 100 simulation delay results. We have found that the python SciPy curve\_fit method, which employs the Levenberg-Marquardt algorithm, is not driven by outliers. The standard deviation $\sigma$ from the fit is used to reject reconstruction results by requiring that a reconstructed delay be within 3$\sigma$ of the true delay. We also require that the uncertainty in the delay be within 3$\sigma$ to reject poor reconstructions.
+
+
+
+\begin{figure}[t]
+\begin{center}
+%\plotone{figures/mastervolume.png}
+\includegraphics[width=\linewidth]{./ana_ll_example.pdf}
+\caption{The systematic behavior of the reconstruction is characterized using the distribution of 100 reconstructed delays. The example shown here is for 60 orbits and a photometric uncertainty of 0.05 mag. The top left shows a distribution of the results with a Gaussian fit with standard deviation $\sigma$. The bottom left shows the delay residuals, with uncertainties derived from the MCMC analysis, vs. the log-likelihood value of the reconstruction. The bottom left figure shows the same plot with the cuts described in the text. The rejected instances are highlighted in red. The top right plot shows the distribution of delay residuals after the rejected instances have been cut out. In this particular example 13\% of the events did not reconstruct with the fidelity required.}\label{fig:volume}
+\end{center}
+\end{figure}
+
 \begin{figure}[t]
 \begin{center}
 %\plotone{figures/mastervolume.png}
 \includegraphics[width=\linewidth]{./systematic_examples.pdf}
-\caption{Summary}\label{fig:volume}
+\caption{The probability of a successful measurement and resolution are shown for several examples of number of orbits and photomoetric uncertainty. The delay residuals from the simulations are shown in gray. The distribution of successful instances, with the requirements described in the text, are shown in blue. A Gaussian function is fit to the distribution of successful delay reconstructions to obtain the expected delay resolution.}\label{fig:volume}
 \end{center}
 \end{figure}
 
@@ -188,7 +200,7 @@ Demonstrate how well we recover structural parameters we put in, showing triangl
 \begin{center}
 %\plotone{figures/mastervolume.png}
 \includegraphics[width=\linewidth]{./systematics_smy.pdf}
-\caption{Summary}\label{fig:volume}
+\caption{Summary of results for the delay measurement resolution (top panel) reconstruction success rate (bottom panel). Photometric uncertainties of 0.02~mag result in delay resolutions smaller than one day and are down to six hours for 80 orbits and above. Even with photometric uncertainties of 0.05~mag, delay resolutions smaller that 1~day can be achieved. The reconstruction success is 90\% for more than 60 orbits and photometric uncertainties below 0.05~mag.}\label{fig:volume}
 \end{center}
 \end{figure}
 
