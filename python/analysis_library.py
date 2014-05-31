@@ -103,6 +103,7 @@ def read_logs(dirc,num_orbits, ph_uncrtnty):
 	os.chdir(dirc)
 	os.system('pwd')
 	fnames = os.listdir('./')
+	#print 'in read_logs: dirc, num_orbits, ph_uncrtnty', dirc, num_orbits, ph_uncrtnty
 	#print fnames
 	run=[]
 	del_val=[]
@@ -115,7 +116,7 @@ def read_logs(dirc,num_orbits, ph_uncrtnty):
 	    norb = (f.split('_')[2])
 	    pu = (f.split('_')[4])
 	    if (tag=='log' and norb == num_orbits and ph_uncrtnty == pu and os.stat(f).st_size!=0):
-	      #print f
+	      print f
 	      if(os.stat(f).st_size!=0):
 	        #print int(f.split('.')[0].split('_r')[1])
 	        run_num = int(f.split('.')[0].split('_r')[1])
@@ -142,9 +143,15 @@ def read_logs(dirc,num_orbits, ph_uncrtnty):
 
 
 
-def ana_ll2(dirc, run1, run2, ll_cut, sig_cut, numbins, minval, maxval, norbits, photom_err, ax):
+def ana_ll2(dirc, ll_cut, sig_cut, numbins, minval, maxval, norbits, photom_err, ax):
 	print 'N=%d orbits, pme = %1.2f mag'%(norbits, photom_err)
-	run, del_val, err_up, err_low, ll = read_logs(dirc,run1, run2)
+	#run, del_val, err_up, err_low, ll = read_logs(dirc,run1, run2)
+	print 'in ana_ll2: norbits, photom_err', norbits, photom_err
+	pmu = '%1.2f'%(photom_err)
+	pmu = pmu.replace('.','p')
+	num_orb = '%s'%(norbits)
+	run, del_val, err_up, err_low, ll = read_logs(dirc, num_orb, pmu)
+	print run, del_val, err_up, err_low, ll
 	array=(del_val-1.5)*24.
 	hist, bin_edges = numpy.histogram(array, bins=numbins, range=[minval,maxval], density=False)
 	bin_centres = (bin_edges[:-1] + bin_edges[1:])/2
@@ -222,27 +229,27 @@ def ll_plot2():
 	#dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_08_hubble_sim_runs/'
 	#dir2 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_09_hubble_sim_runs/' 
 	#dir3 = '/data2/fot/python/'
-	dir1='./'
+	dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_15_hubble_sim_runs/'
 	sig_cut = 3.0
 
 	# 40 ORBITS
 	fig=figure()
 	ax=subplot(325)
-	m_40_0p02, s_40_0p02, scs_40_0p02 = ana_ll2(dir1, 1000, 1100, 800., sig_cut, 250, -30., 30., 40, 0.02, ax)
+	m_40_0p02, s_40_0p02, scs_40_0p02 = ana_ll2(dir1, 800., sig_cut, 250, -30., 30., 40, 0.02, ax)
 	ax=subplot(326)
-	m_40_0p05, s_40_0p05, scs_40_0p05 = ana_ll2(dir1, 1100, 1200, 500., sig_cut, 100, -30., 30., 40, 0.05, ax)
+	m_40_0p05, s_40_0p05, scs_40_0p05 = ana_ll2(dir1,500., sig_cut, 100, -30., 30., 40, 0.05, ax)
 	
 	# 60 ORBITS
 	ax=subplot(323)
-	m_60_0p02, s_60_0p02, scs_60_0p02 = ana_ll2(dir2, 4000, 4100, 1200., sig_cut, 250, -30., 30., 60, 0.02,ax)
+	m_60_0p02, s_60_0p02, scs_60_0p02 = ana_ll2(dir1, 1200., sig_cut, 250, -30., 30., 60, 0.02,ax)
 	ax=subplot(324)
-	m_60_0p05, s_60_0p05, scs_60_0p05 = ana_ll2(dir2, 4100, 4200, 850., sig_cut, 100, -30., 30., 60, 0.05,ax)
+	m_60_0p05, s_60_0p05, scs_60_0p05 = ana_ll2(dir1,  850., sig_cut, 100, -30., 30., 60, 0.05,ax)
 
 	# 80 ORBITS
 	ax=subplot(321)
-	m_80_0p02, s_80_0p02, scs_80_0p02 = ana_ll2(dir1, 0, 100, 1700., sig_cut, 250, -30., 30., 80, 0.02,ax)
+	m_80_0p02, s_80_0p02, scs_80_0p02 = ana_ll2(dir1, 1700., sig_cut, 250, -30., 30., 80, 0.02,ax)
 	ax=subplot(322)
-	m_80_0p05, s_80_0p05, scs_80_0p05 = ana_ll2(dir1, 100, 200, 1100., sig_cut, 100, -30., 30., 80, 0.05,ax)
+	m_80_0p05, s_80_0p05, scs_80_0p05 = ana_ll2(dir1, 1100., sig_cut, 100, -30., 30., 80, 0.05,ax)
 
 
 	subplots_adjust(left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.1, hspace=0.99)
@@ -255,6 +262,7 @@ def ana_ll(dirc, num_orbits, ph_unc, ll_cut, sig_cut, numbins, minval, maxval):
 	#, norbits, photom_err
 	print 'N=%s orbits, pme = %s mag'%(num_orbits, ph_unc.replace('p','.'))
 	run, del_val, err_up, err_low, ll = read_logs(dirc, num_orbits, ph_unc)
+	#print run, del_val, err_up, err_low, ll
 	array=(del_val-1.5)*24.
 	hist, bin_edges = numpy.histogram(array, bins=numbins, range=[minval,maxval], density=False)
 	bin_centres = (bin_edges[:-1] + bin_edges[1:])/2

@@ -132,6 +132,7 @@ def single_obs_view(fnm,chain_fnm):
 	show()
 def ll_plot():
 	pdfp=PdfPages('systematics_ll.pdf')
+	pdfp2=PdfPages('systematics_smy.pdf')
 	#pdfp=PdfPages('systematics_ll_0p01.pdf')
 	#dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_08_hubble_sim_runs/'
 	#dir2 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_09_hubble_sim_runs/' 
@@ -219,6 +220,7 @@ def ll_plot():
 	grid(True)
 	legend(loc=1, title='Photometric\nUncertainty')
 	tick_params(axis='x', labelbottom='off')
+	yticks(arange(-5.,5.1,1.))
 	subplot(212)
 	#print binom_interval(50, 100, confint=0.68)
 		
@@ -232,10 +234,11 @@ def ll_plot():
 	xlabel('Number of Orbits')
 	grid(True)
 	#show()
-	subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.01)
+	subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.1)
 	pdfp.savefig(fig)
-	fig.savefig('hubble_sim_summary.png')
+	pdfp2.savefig(fig)
 	pdfp.close()
+	pdfp2.close()
 	exit()
 
 #fnm       = '../outputs/sim_data_hubble_test_2014_05_28_16:46.npz'
@@ -249,8 +252,9 @@ def ll_plot():
 fnm	  = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/sim_data_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21.npz'
 chain_fnm = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/chain_samples_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21_2014_04_16_23:21.npz'
 
-single_obs_view(fnm,chain_fnm)
+#single_obs_view(fnm,chain_fnm)
 
-ll_plot()
+#ll_plot()
+ll_plot2()
 exit()
 
