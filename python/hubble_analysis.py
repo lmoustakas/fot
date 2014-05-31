@@ -82,15 +82,24 @@ def single_obs_view(fnm,chain_fnm):
 	#fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
 	fig= triangle.corner(filtered_samples[:,[0,1,4,2,3]], labels=["delay", "$\Delta$m", r"$\langle m \rangle$", "$\sigma$", r"$\tau$"])
 
-	a = axes([.55, .675, .4, .275], axisbg='none')
+	a1 = axes([.55, .83, .4, .14], axisbg='none')
 	errorbar(time_array, mag1_dat,fmt='b+', yerr=0.02*ones(len(time_array)), mec='b', ms=3)
+	errorbar(time_array, mag2_dat ,fmt='rx', yerr=0.02*ones(len(time_array)), mec='r', ms=3 )
+	title('Light Curves')
+	#xlabel('time, days')
+	ylabel('Magnitude, arb. u.')
+	a1.set_xticklabels('')
+	setp(a1, yticks=arange(18.8,19.5,0.2))
+	a2 = axes([.55, .65, .4, .14], axisbg='none')
 	dt = x_dt[argmax(p_dt)]
 	dm = x_dm[argmax(p_dm)]
-	errorbar(time_array-dt, mag2_dat-dm ,fmt='rx', yerr=0.02*ones(len(time_array)), mec='r', ms=3 )
-	title('Light Curves')
+	errorbar(time_array, mag1_dat,fmt='b+', yerr=0.02*ones(len(time_array)), mec='b', ms=3, label='light curve 1')
+	errorbar(time_array-dt, mag2_dat-dm ,fmt='rx', yerr=0.02*ones(len(time_array)), mec='r', ms=3, label='light curve 2' )
+	legend(loc=1)
+	#title('Light Curves')
 	xlabel('time, days')
 	ylabel('Magnitude, arb. u.')
-	setp(a)
+	setp(a2, yticks=arange(18.8,19.21,0.1))
 	show()
 	exit()
 
