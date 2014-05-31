@@ -241,6 +241,117 @@ def ll_plot():
 	pdfp2.close()
 	exit()
 
+def ll_plot3():
+	pdfp=PdfPages('systematics_ll.pdf')
+	pdfp2=PdfPages('systematics_smy.pdf')
+	#pdfp=PdfPages('systematics_ll_0p01.pdf')
+	#dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_08_hubble_sim_runs/'
+	#dir2 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_09_hubble_sim_runs/' 
+	#dir3 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_10_hubble_sim_runs/'
+	dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_15_hubble_sim_runs/'
+	sig_cut = 3.0
+	'''
+	fig=figure()
+	m_40_0p01, s_40_0p01, scs_40_0p01 = ana_ll(dir3, 8000, 9100, 1700., sig_cut, 50, -2., 2., 40, 0.01)
+	pdfp.savefig(fig)
+	fig=figure()
+	m_80_0p01, s_80_0p01, scs_80_0p01 = ana_ll(dir3, 9000, 9100, 1800., sig_cut, 50, -2., 2., 80, 0.01)
+	show()
+	pdfp.savefig(fig)
+	pdfp.close()
+	exit()
+	'''
+
+	num_orbits_list=['40', '50', '60', '70', '80', '90', '100']
+	pu='0p02'
+	m_0p02=[]
+	s_0p02=[]
+	scs_0p02=[]
+  	for norb in num_orbits_list:
+  	  fig=figure()
+	  m, s, scs = ana_ll(dir1, norb, pu, 0.01, sig_cut, 250, -30., 30.)
+	  m_0p02.append(m)
+	  s_0p02.append(s)
+	  scs_0p02.append(scs)
+	  pdfp.savefig(fig)
+	scs_0p02_err_up=[]
+	scs_0p02_err_lo=[]
+	for k in range(0,len(scs_0p02)):
+		l,u = binom_interval(scs_0p02[k], 100, confint=0.68)
+		scs_0p02_err_lo.append(scs_0p02[k]-l)
+		scs_0p02_err_up.append(u-scs_0p02[k])
+
+	pu='0p05'
+	m_0p05=[]
+	s_0p05=[]
+	scs_0p05=[]
+  	for norb in num_orbits_list:
+  	  fig=figure()
+	  m, s, scs = ana_ll(dir1, norb, pu, 0.01, sig_cut, 100, -30., 30.)
+	  m_0p05.append(m)
+	  s_0p05.append(s)
+	  scs_0p05.append(scs)
+	  pdfp.savefig(fig)
+	scs_0p05_err_up=[]
+	scs_0p05_err_lo=[]
+	for k in range(0,len(scs_0p05)):
+		l,u = binom_interval(scs_0p05[k], 100, confint=0.68)
+		scs_0p05_err_lo.append(scs_0p05[k]-l)
+		scs_0p05_err_up.append(u-scs_0p05[k])
+	pu='0p10'
+	m_0p10=[]
+	s_0p10=[]
+	scs_0p10=[]
+  	for norb in num_orbits_list:
+  	  fig=figure()
+	  m, s, scs = ana_ll(dir1, norb, pu, 0.01, sig_cut, 50, -30., 30.)
+	  m_0p10.append(m)
+	  s_0p10.append(s)
+	  scs_0p10.append(scs)
+	  pdfp.savefig(fig)
+	scs_0p10_err_up=[]
+	scs_0p10_err_lo=[]
+	for k in range(0,len(scs_0p10)):
+		l,u = binom_interval(scs_0p10[k], 100, confint=0.68)
+		scs_0p10_err_lo.append(scs_0p10[k]-l)
+		scs_0p10_err_up.append(u-scs_0p10[k])
+		
+	fig=figure()
+	orbs = map(int, num_orbits_list)
+	subplot(211)
+	errorbar(orbs, m_0p10, yerr=s_0p10, fmt='r_', label='0.10 mag', capsize=0, elinewidth=30, ms=0, ecolor='r', mew=3)
+	errorbar(orbs, m_0p05, yerr=s_0p05, fmt='b_', label='0.05 mag', capsize=0, elinewidth=20, ms=0, ecolor = 'b', mew=3)
+	errorbar(orbs, m_0p02, yerr=s_0p02, fmt='k_', label='0.02 mag', capsize=0, elinewidth=10, ms=0, ecolor='k', mew=3)
+	#errorbar(orbs, m_0p10, yerr=s_0p10, fmt='r_', label='0.10 mag', capsize=0, elinewidth=30, ms=0, ecolor='0.7', mew=3)
+	#errorbar(orbs, m_0p05, yerr=s_0p05, fmt='b_', label='0.05 mag', capsize=0, elinewidth=20, ms=0, ecolor = '0.4', mew=3)
+	#errorbar(orbs, m_0p02, yerr=s_0p02, fmt='k_', label='0.02 mag', capsize=0, elinewidth=10, ms=0, ecolor='0.0', mew=3)
+	xlim(35.,125.)
+	ylim(-5.9,5.9)
+	ylabel('Light Curve Delay\nResolution, hours')
+	#xlabel('Number of Orbits')
+	grid(True)
+	legend(loc=1, title='Photometric\nUncertainty')
+	tick_params(axis='x', labelbottom='off')
+	yticks(arange(-5.,5.1,1.))
+	subplot(212)
+	#print binom_interval(50, 100, confint=0.68)
+		
+	errorbar(orbs,scs_0p10, yerr=(scs_0p10_err_lo, scs_0p10_err_up), fmt='r_', color='r', capsize=0, elinewidth=30, label='0.10 mag', ms=0)
+	errorbar(orbs,scs_0p05, yerr=(scs_0p05_err_lo, scs_0p05_err_up), fmt='b_', color='b', capsize=0, elinewidth=20, label='0.05 mag', ms=0)
+	errorbar(orbs,scs_0p02, yerr=(scs_0p02_err_lo, scs_0p02_err_up), fmt='k_', color='k', capsize=0, elinewidth=10, label='0.02 mag', ms=0)
+	legend(loc=1, title='Photometric\nUncertainty')
+	ylim(40.,100.)
+	xlim(35.,125.)
+	ylabel('Reconstruction\nSuccess Rate, %')
+	xlabel('Number of Orbits')
+	grid(True)
+	#show()
+	subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.1)
+	pdfp.savefig(fig)
+	pdfp2.savefig(fig)
+	pdfp.close()
+	pdfp2.close()
+	exit()
 #fnm       = '../outputs/sim_data_hubble_test_2014_05_28_16:46.npz'
 #chain_fnm = '../outputs/chain_samples_hubble_test_2014_05_28_16:46.npz'
 
