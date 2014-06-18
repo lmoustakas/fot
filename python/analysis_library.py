@@ -21,7 +21,7 @@ def get_data(fnm, season, img1, img2, pmu):
 
 def get_chain(filename):
 	npzfile = numpy.load(filename)
-	print 'npzfile.files', npzfile.files
+	#print 'npzfile.files', npzfile.files
 	samples = npzfile['arr_0']
 	return samples
 
@@ -30,7 +30,7 @@ def get_parameter_samples(samples):
 
 def filter_samples(array, n_iterations, n_iteration_filter):
 	array_index = range(0,len(array))
-	return array[mod(array_index,n_iterations)>n_iteration_filter]
+	return array[mod(array_index,n_iterations)>=n_iteration_filter]
 	
 def hist_param(array, y, norm=True):
 	p,d =  numpy.histogram(array, bins = len(y), range = [min(y),max(y)] )

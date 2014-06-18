@@ -46,7 +46,7 @@ for rung in rung_list:
     print ''
     print datetime.datetime.now()
     print com
-    run_queue(njobs,com)	
+    #run_queue(njobs,com)	
 
 
 

@@ -182,6 +182,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
 
+#  for k in range(0,len(t)):
+#	print '%d\t%1.2f\t%1.3e\t%1.3e\t%1.3e\t%1.3e'%(k, t[k], lc1[k], e1[k], lc2[k], e2[k])
+
 #  def lnprior(_theta):
 #    _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
 #    if delay_prior_min < _delay < delay_prior_max and delta_mag_prior_min<_delta_mag<delta_mag_prior_max and sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
@@ -207,9 +210,15 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print '-------------'
   print ''
   #RUN EMCEE
+  
   ndim, nwalkers = 5, 100
   n_burn_in_iterations = 100
   n_iterations = 1000
+ 
+  # short for testing
+  #ndim, nwalkers = 5, 10
+  #n_burn_in_iterations = 10
+  #n_iterations = 10
   print 'pos'
   prior_vals=[delay_prior, delta_mag_prior, sigma_prior, tau_prior, avg_mag_prior]
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
@@ -227,7 +236,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   #sampler.run_mcmc(pos, 500)
   sampler.run_mcmc(pos, n_burn_in_iterations)
 
-  samples = sampler.chain[:, 50:, :].reshape((-1, ndim))
+  samples = sampler.chain[:, int(0.5*float(n_burn_in_iterations)):, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
   mc_delay, mc_delta_mag, mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   print '\tErrors based on 16th, 50th, and 84th percentile'
@@ -284,7 +293,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'It is currently   ', datetime.datetime.now()
   print 'sampler.chain'
   
-  samples = sampler.chain[:, 500:, :].reshape((-1, ndim))
+  samples = sampler.chain[:, int(0.5*float(n_iterations)):, :].reshape((-1, ndim))
   print len(samples)
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
@@ -299,6 +308,13 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
   print ''
   print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2))
+  chain_fnm_string = outputdir+'chain_samples_%s'%(output_tag)
+  print 'saving emcee sample chain in %s'%chain_fnm_string
+  #np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
+  np.savez(chain_fnm_string, sampler.chain[:, 0:, :].reshape((-1, ndim)))
+  print 'chain saving complete'
+
+  print 'Saving triangle plot'
   #figure(2)
   #for i in range(ndim):
       #figure()
@@ -336,8 +352,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   legend(loc=1)
     
   fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
-  
-  np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
+  print 'finished writing triangle plot'
 
   '''
   fig = figure()
