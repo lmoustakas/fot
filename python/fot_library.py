@@ -109,6 +109,22 @@ def kelly_estimates(theta, time_array, flux_array, ph_err_array):
 
 ################################################################################################
 #from pylab import * #import for testing only.
+def kelly_chisq(theta, time_array, flux_array, ph_err_array):
+  #see Equations 6-12 of Kelly, 2009
+  if(len(theta)!=3):
+    print 'qsr_ll.py'
+    print 'USAGE:***********************************************************************' 
+    print 'kelly_chisq ( [sigma, tau, b], time_array, flux_array, measurement_error_array )'
+    print 'exiting'
+    exit()
+  sig, tau, avg_mag = theta
+  if(tau<=0.): return -np.inf
+  x=flux_array
+  t=time_array
+  x_hat, err = kelly_estimates(theta, time_array, flux_array, ph_err_array)
+  x_star=x-avg_mag
+  return np.sum( ((x_hat-x_star)**2 / (err**2))**2 )
+
 def kelly_ll(theta, time_array, flux_array, ph_err_array):
   #see Equations 6-12 of Kelly, 2009
   if(len(theta)!=3):
@@ -162,6 +178,11 @@ def merge(_t, _x1, _e1, _x2, _e2, _dt, _dmag):
   e_cat_sort  =  np.array([z for (x,y,z) in sorted(zip(t_cat,x_cat, e_cat))])
   
   return  t_cat_sort, x_cat_sort, e_cat_sort
+
+def kelly_delay_chisq(theta, time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2):
+  delay, delta_mag, sig, tau, avg_mag = theta
+  t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
+  return kelly_chisq([sig,tau,avg_mag], t, x, e)
 
 def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2):
   delay, delta_mag, sig, tau, avg_mag = theta
