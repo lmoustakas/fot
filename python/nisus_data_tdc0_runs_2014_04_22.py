@@ -40,9 +40,13 @@ pair_list = [1,2,3,4,5,6,7,8]
 for rung in rung_list:
   for pair in pair_list:
     fnm = 'tdc0_rung%d_pair%d'%(rung,pair)
+    t0 = datetime.datetime.now()
+    date_string = t0.strftime("_%Y_%m_%d_%H:%M")
+    log_fnm = ''.join([fnm,date_string ])
+
     print '\t', rung, pair, fnm
     #for ph_un_add in ph_un_add_list:
-    com = './fot_delay_tdc0.py -i %s.txt -l \'A\' -m \'B\' -su 0. -dtp 0. -dtpmin -200. -dtpmax 200. -dmp 0.5 -dmpmin -5. -dmpmax 5. -sp 0.07 -spmin 0.00007 -spmax 7. -tp 121. -tpmin 10. -tpmax 1000. -mp -13. -mpmin -30 -mpmax 100. -z 0. -o %s > %s.log &'%(fnm ,fnm,  fnm)
+    com = './fot_delay_tdc0.py -i %s.txt -l \'A\' -m \'B\' -su 0. -dtp 0. -dtpmin -1600. -dtpmax 1600. -dmp 0. -dmpmin -10. -dmpmax 10. -sp 1. -spmin 0.00007 -spmax 70. -tp 100. -tpmin 10. -tpmax 10000. -mp -13. -mpmin -30 -mpmax 100. -z 0. -o %s > %s.log &'%(fnm ,fnm,  log_fnm)
     print ''
     print datetime.datetime.now()
     print com

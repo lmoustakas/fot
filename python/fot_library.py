@@ -139,8 +139,8 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
   t=time_array
   x_hat, err = kelly_estimates(theta, time_array, flux_array, ph_err_array)
   x_star=x-avg_mag
-  ll = np.cumsum( -((x_hat-x_star)**2 / (err**2)) - np.log(2*np.pi*(err**2)))  #ph_err_array*=0.
-  return ll[len(x)-1]
+  ll = np.sum( -0.5*((x_hat-x_star)**2 / (err**2)) - 0.5*np.log(2*np.pi*(err**2)))  #ph_err_array*=0.
+  return ll
 
 def hojjati_ll(time_array, flux_array, ph_err_array, sig, tau, b):
   Nsamp=len(flux_array)
@@ -189,6 +189,152 @@ def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, p
   t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
   return kelly_ll([sig,tau,avg_mag], t, x, e)
 
+def emcee_lightcurve_estimator(t, lc1, e1, output_tag, 
+			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
+			  tau_prior,       tau_prior_min,       tau_prior_max, 
+			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max):
+  outputdir=os.environ['FOTDIR']+'/outputs/'
+  t0 = datetime.datetime.now()
+  print 'Process Started on', t0
+  date_string = t0.strftime("_%Y_%m_%d_%H:%M")
+  #print date_string
+  output_tag = ''.join([output_tag,date_string ])
+  print 'The output_tag for this run is:', output_tag
+
+  def lnprior(_theta):
+    _sigma, _tau, _avg_mag = _theta
+    if sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
+	  return 0.0  #sigma and tau are scale parameters. Also true of delta_mag and avg_mag, but they are already in logarithmic units.
+    return -np.inf
+      
+  def lnprob(theta, t, lc1, err1):
+    lp = lnprior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + kelly_ll(theta, t, lc1, err1)
+
+  
+  print ''
+  print '-------------'
+  print 'RUNNING EMCEE'
+  print '-------------'
+  print ''
+  #RUN EMCEE
+  
+  ndim =3
+  nwalkers = 100
+  n_burn_in_iterations = 100
+  n_iterations = 2000
+ 
+  print 'pos'
+  prior_vals=[sigma_prior, tau_prior, avg_mag_prior]
+  pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+  r=np.random.randn(ndim)
+  print 'sampler'
+  sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(t, lc1, e1))
+  print 'Process Started on', t0
+  print 'It is currently   ', datetime.datetime.now()
+  print 'burn-in sampler.run_mcmc'
+  #sampler.run_mcmc(pos, 500)
+  sampler.run_mcmc(pos, n_burn_in_iterations)
+
+  samples = sampler.chain[:, int(0.5*float(n_burn_in_iterations)):, :].reshape((-1, ndim))
+  print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+  mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  print '\tErrors based on 16th, 50th, and 84th percentile'
+  print '\tParam     \tMC_rec\terr_up\terr_low'
+  print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
+  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print '\tavg_mag       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
+
+  #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"],
+			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
+  #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
+  #reorder variables for presentation purposes
+  fig= triangle.corner(samples, labels=[ "$\sigma$", r"$\tau$", "avg_mag"])
+  #print fig.get_axes()
+  count=0
+  # REMOVE OFFSET FROM TRIANGLE PLOTS
+  for ax in fig.get_axes():
+    count+=1
+    if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    
+  ax1 = fig.add_subplot(3,2,2)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve')
+  miny=min(lc1-e1)
+  maxy=max(lc1+e1)
+  ylim(miny,maxy+0.5*(maxy-miny))
+  legend(loc=1)
+  setp(ax1.get_xticklabels(), visible=False) 
+  xlabel('time, days')
+  ylabel('magnitude')
+  legend(loc=1)
+
+    
+  fig.savefig(outputdir+"burn_in_triangle_%s.png"%(output_tag))
+  
+
+  sampler.reset()
+  
+  print 'Process Started on', t0
+  print 'It is currently   ', datetime.datetime.now()
+  print 'sampler.run_mcmc'
+  #sampler.run_mcmc(pos, 100)
+  sampler.run_mcmc(pos, n_iterations)
+  print 'Process Started on', t0
+  print 'It is currently   ', datetime.datetime.now()
+  print 'sampler.chain'
+  
+  samples = sampler.chain[:, int(0.5*float(n_iterations)):, :].reshape((-1, ndim))
+  print len(samples)
+  print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+
+  mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+
+  print 'Errors based on 16th, 50th, and 84th percentile'
+  print 'Param     \tMC_rec\terr_up\terr_low'
+  print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
+  print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print 'avg_mag   \t%1.5e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
+  print ''
+  print 'Likelihood value for this solution: %1.5e'%(kelly_ll([mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1))
+  print 'Reduced chisq value for this solution: %1.5e'%(kelly_chisq([mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1)/float(len(t)))
+  chain_fnm_string = outputdir+'chain_samples_%s'%(output_tag)
+  print 'saving emcee sample chain in %s'%chain_fnm_string
+  #np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
+  np.savez(chain_fnm_string, sampler.chain[:, 0:, :].reshape((-1, ndim)))
+  print 'chain saving complete'
+
+  print 'Saving triangle plot'
+  fig= triangle.corner(samples, labels=[ "$\sigma$", r"$\tau$", "avg_mag"])
+  # REMOVE OFFSET FROM TRIANGLE PLOTS
+  count=0
+  for ax in fig.get_axes():
+    count+=1
+    if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    
+  ax1 = fig.add_subplot(3,2,2)
+  errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve')
+  miny=min(lc1-e1)
+  maxy=max(lc1+e1)
+  ylim(miny,maxy+0.5*(maxy-miny))
+  legend(loc=1)
+  xlabel('time, days')
+  ylabel('magnitude')
+  legend(loc=1)
+    
+  fig.savefig(outputdir+"triangle_%s.png"%(output_tag))
+  print 'finished writing triangle plot'
+
+  print 'Process Started on', t0
+  print 'It is currently   ', datetime.datetime.now()
+  return mc_sigma[0], mc_tau[0]
+  #show()
+#################################
+#END def emcee_lightcurve_estimator(...)
+
 def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag, 
 			  delay_prior,     delay_prior_min,     delay_prior_max,
 			  delta_mag_prior, delta_mag_prior_min, delta_mag_prior_max, 
@@ -232,14 +378,11 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print ''
   #RUN EMCEE
   
-  ndim, nwalkers = 5, 100
+  ndim = 5
+  nwalkers = 100
   n_burn_in_iterations = 100
-  n_iterations = 1000
+  n_iterations = 2000
  
-  # short for testing
-  #ndim, nwalkers = 5, 10
-  #n_burn_in_iterations = 10
-  #n_iterations = 10
   print 'pos'
   prior_vals=[delay_prior, delta_mag_prior, sigma_prior, tau_prior, avg_mag_prior]
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
@@ -329,6 +472,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
   print ''
   print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2))
+  print 'Reduced chisq value for this solution: %1.5e'%(kelly_delay_chisq([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2)/float(len(t)))
   chain_fnm_string = outputdir+'chain_samples_%s'%(output_tag)
   print 'saving emcee sample chain in %s'%chain_fnm_string
   #np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
