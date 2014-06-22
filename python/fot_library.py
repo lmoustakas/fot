@@ -82,13 +82,13 @@ def diff_check(_sigma, _tau, _avg_mag,_t,_x,_e):
 def kelly_estimates(theta, time_array, flux_array, ph_err_array):
   #see Equations 6-12 of Kelly, 2009
   if(len(theta)!=3):
-    print 'qsr_ll.py'
+    print 'kelly_estimates.py'
     print 'USAGE:***********************************************************************' 
-    print 'kelly_diff ( [sigma, tau, b], time_array, flux_array, measurement_error_array )'
+    print 'kelly_diff ( [sigma, log10_tau, avg_mag], time_array, flux_array, measurement_error_array )'
     print 'exiting'
     exit()
-  sig, tau, avg_mag = theta
-  
+  sig, log10_tau, avg_mag = theta
+  tau=10.**log10_tau
   x=flux_array
   t=time_array
   #ph_err_array*=0.
@@ -97,7 +97,7 @@ def kelly_estimates(theta, time_array, flux_array, ph_err_array):
   x_hat=[0.]
   Omega=[tau*sig**2/2.]
   a=[0.]
-  ll=0.
+  #ll=0.
   for i in range(1,len(t)+1):
     if(i==1): a.append(0.)
     if(i>1): a.append(np.exp(-abs(t[i-1]-t[i-2])/tau)) #t array start at 0, the rest start at 1
@@ -112,13 +112,12 @@ def kelly_estimates(theta, time_array, flux_array, ph_err_array):
 def kelly_chisq(theta, time_array, flux_array, ph_err_array):
   #see Equations 6-12 of Kelly, 2009
   if(len(theta)!=3):
-    print 'qsr_ll.py'
+    print 'kelly_chisq.py'
     print 'USAGE:***********************************************************************' 
-    print 'kelly_chisq ( [sigma, tau, b], time_array, flux_array, measurement_error_array )'
+    print 'kelly_chisq ( [sigma, log10_tau, avg_mag], time_array, flux_array, measurement_error_array )'
     print 'exiting'
     exit()
-  sig, tau, avg_mag = theta
-  if(tau<=0.): return -np.inf
+  sig, log10_tau, avg_mag = theta
   x=flux_array
   t=time_array
   x_hat, err = kelly_estimates(theta, time_array, flux_array, ph_err_array)
@@ -133,8 +132,7 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
     print 'kelly_ll ( [sigma, tau, b], time_array, flux_array, measurement_error_array )'
     print 'exiting'
     exit()
-  sig, tau, avg_mag = theta
-  if(tau<=0.): return -np.inf
+  sig, log10_tau, avg_mag = theta
   x=flux_array
   t=time_array
   x_hat, err = kelly_estimates(theta, time_array, flux_array, ph_err_array)
@@ -180,19 +178,20 @@ def merge(_t, _x1, _e1, _x2, _e2, _dt, _dmag):
   return  t_cat_sort, x_cat_sort, e_cat_sort
 
 def kelly_delay_chisq(theta, time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2):
-  delay, delta_mag, sig, tau, avg_mag = theta
+  delay, delta_mag, sig, log10_tau, avg_mag = theta
   t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
-  return kelly_chisq([sig,tau,avg_mag], t, x, e)
+  return kelly_chisq([sig,log10_tau,avg_mag], t, x, e)
 
 def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2):
-  delay, delta_mag, sig, tau, avg_mag = theta
+  delay, delta_mag, sig, log10_tau, avg_mag = theta
   t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
-  return kelly_ll([sig,tau,avg_mag], t, x, e)
+  return kelly_ll([sig, log10_tau, avg_mag], t, x, e)
 
 def emcee_lightcurve_estimator(t, lc1, e1, output_tag, 
 			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
 			  tau_prior,       tau_prior_min,       tau_prior_max, 
 			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max):
+  # time tage the output file name
   outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
@@ -201,9 +200,16 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
   output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
 
+  #convert from linear scale tau to log tau
+  log10_tau_prior     = log10(tau_prior)
+  log10_tau_prior_min = log10(tau_prior_min)
+  log10_tau_prior_max = log10(tau_prior_max)
+  
   def lnprior(_theta):
-    _sigma, _tau, _avg_mag = _theta
-    if sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
+    _sigma, _log10_tau, _avg_mag = _theta
+    if sigma_prior_min<_sigma<sigma_prior_max \
+	and log10_tau_prior_min<_log10_tau<log10_tau_prior_max \
+	and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
 	  return 0.0  #sigma and tau are scale parameters. Also true of delta_mag and avg_mag, but they are already in logarithmic units.
     return -np.inf
       
@@ -223,11 +229,12 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
   
   ndim =3
   nwalkers = 100
+  #nwalkers = 6  # minium possible number of walkers
   n_burn_in_iterations = 100
   n_iterations = 2000
  
   print 'pos'
-  prior_vals=[sigma_prior, tau_prior, avg_mag_prior]
+  prior_vals=[sigma_prior, log10_tau_prior, avg_mag_prior]
   pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
   r=np.random.randn(ndim)
   print 'sampler'
@@ -240,19 +247,18 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
 
   samples = sampler.chain[:, int(0.5*float(n_burn_in_iterations)):, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
-  mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   print '\tErrors based on 16th, 50th, and 84th percentile'
   print '\tParam     \tMC_rec\terr_up\terr_low'
   print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
-  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print '\tlog10_tau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_log10_tau[0], mc_log10_tau[1], mc_log10_tau[2])
   print '\tavg_mag       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
 
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"],
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   #reorder variables for presentation purposes
-  fig= triangle.corner(samples, labels=[ "$\sigma$", r"$\tau$", "avg_mag"])
-  #print fig.get_axes()
+  fig= triangle.corner(samples, labels=[ "$\sigma$", r"$\log_{10}(tau/days)$", "avg_mag"])
   count=0
   # REMOVE OFFSET FROM TRIANGLE PLOTS
   for ax in fig.get_axes():
@@ -260,7 +266,7 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
     if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     
-  ax1 = fig.add_subplot(3,2,2)
+  ax1 = fig.add_subplot(4,2,2)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve')
   miny=min(lc1-e1)
   maxy=max(lc1+e1)
@@ -290,16 +296,16 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
   print len(samples)
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
-  mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
 
   print 'Errors based on 16th, 50th, and 84th percentile'
   print 'Param     \tMC_rec\terr_up\terr_low'
   print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
-  print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print 'log10_tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_log10_tau[0], mc_log10_tau[1], mc_log10_tau[2])
   print 'avg_mag   \t%1.5e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   print ''
-  print 'Likelihood value for this solution: %1.5e'%(kelly_ll([mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1))
-  print 'Reduced chisq value for this solution: %1.5e'%(kelly_chisq([mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1)/float(len(t)))
+  print 'Likelihood value for this solution: %1.5e'%(kelly_ll([mc_sigma[0],mc_log10_tau[0],mc_avg_mag[0]], t, lc1, e1))
+  print 'Reduced chisq value for this solution: %1.5e'%(kelly_chisq([mc_sigma[0],mc_log10_tau[0],mc_avg_mag[0]], t, lc1, e1)/float(len(t)))
   chain_fnm_string = outputdir+'chain_samples_%s'%(output_tag)
   print 'saving emcee sample chain in %s'%chain_fnm_string
   #np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
@@ -307,7 +313,7 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
   print 'chain saving complete'
 
   print 'Saving triangle plot'
-  fig= triangle.corner(samples, labels=[ "$\sigma$", r"$\tau$", "avg_mag"])
+  fig= triangle.corner(samples, labels=[ "$\sigma$", r"$\log_{10}(\tau/days)$", "avg_mag"])
   # REMOVE OFFSET FROM TRIANGLE PLOTS
   count=0
   for ax in fig.get_axes():
@@ -315,7 +321,7 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
     if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     
-  ax1 = fig.add_subplot(3,2,2)
+  ax1 = fig.add_subplot(4,2,2)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve')
   miny=min(lc1-e1)
   maxy=max(lc1+e1)
@@ -330,7 +336,7 @@ def emcee_lightcurve_estimator(t, lc1, e1, output_tag,
 
   print 'Process Started on', t0
   print 'It is currently   ', datetime.datetime.now()
-  return mc_sigma[0], mc_tau[0]
+  return mc_sigma[0], mc_log10_tau[0]
   #show()
 #################################
 #END def emcee_lightcurve_estimator(...)
@@ -341,6 +347,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
 			  tau_prior,       tau_prior_min,       tau_prior_max, 
 			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max):
+  # append time to output tag.
   outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
@@ -348,6 +355,11 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   #print date_string
   output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
+
+  #convert from linear scale tau to log tau
+  log10_tau_prior     = log10(tau_prior)
+  log10_tau_prior_min = log10(tau_prior_min)
+  log10_tau_prior_max = log10(tau_prior_max)
 
 #  for k in range(0,len(t)):
 #	print '%d\t%1.2f\t%1.3e\t%1.3e\t%1.3e\t%1.3e'%(k, t[k], lc1[k], e1[k], lc2[k], e2[k])
@@ -358,9 +370,14 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 #	  return 0.0
 #    return -np.inf
 
+  # flat priors
   def lnprior(_theta):
-    _delay, _delta_mag, _sigma, _tau, _avg_mag = _theta
-    if delay_prior_min < _delay < delay_prior_max and delta_mag_prior_min<_delta_mag<delta_mag_prior_max and sigma_prior_min<_sigma<sigma_prior_max and tau_prior_min<_tau<tau_prior_max and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
+    _delay, _delta_mag, _sigma, _log10_tau, _avg_mag = _theta
+    if delay_prior_min < _delay < delay_prior_max \
+	and delta_mag_prior_min<_delta_mag<delta_mag_prior_max \
+	and sigma_prior_min<_sigma<sigma_prior_max \
+	and log10_tau_prior_min<_log10_tau<log10_tau_prior_max \
+	and avg_mag_prior_min<_avg_mag<avg_mag_prior_max:
 	  return 0.0  #sigma and tau are scale parameters. Also true of delta_mag and avg_mag, but they are already in logarithmic units.
     return -np.inf
       
@@ -380,11 +397,12 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   
   ndim = 5
   nwalkers = 100
+  #nwalkers = 10 # minimum possible number of walkers
   n_burn_in_iterations = 100
   n_iterations = 2000
  
   print 'pos'
-  prior_vals=[delay_prior, delta_mag_prior, sigma_prior, tau_prior, avg_mag_prior]
+  prior_vals=[delay_prior, delta_mag_prior, sigma_prior, log10_tau_prior, avg_mag_prior]
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
   pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
   #pos = [[uniform(delay-100,delay+100.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
@@ -402,20 +420,20 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 
   samples = sampler.chain[:, int(0.5*float(n_burn_in_iterations)):, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
-  mc_delay, mc_delta_mag, mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   print '\tErrors based on 16th, 50th, and 84th percentile'
   print '\tParam     \tMC_rec\terr_up\terr_low'
   print '\tdelay     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delay[0], mc_delay[1], mc_delay[2])
   print '\tavg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   print '\tdelta_mag \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
   print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
-  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_log10_tau[0], mc_log10_tau[1], mc_log10_tau[2])
 
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"],
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   #reorder variables for presentation purposes
-  fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
+  fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\log_{10}(\tau/days)$"])
   #print fig.get_axes()
   count=0
   # REMOVE OFFSET FROM TRIANGLE PLOTS
@@ -461,7 +479,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print len(samples)
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
-  mc_delay, mc_delta_mag, mc_sigma, mc_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
 
   print 'Errors based on 16th, 50th, and 84th percentile'
   print 'Param     \tMC_rec\terr_up\terr_low'
@@ -469,10 +487,10 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'avg_mag   \t%1.5e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
   print 'delta_mag \t%1.5e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
   print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
-  print 'tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_tau[0], mc_tau[1], mc_tau[2])
+  print 'log10_tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_log10_tau[0], mc_log10_tau[1], mc_log10_tau[2])
   print ''
-  print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2))
-  print 'Reduced chisq value for this solution: %1.5e'%(kelly_delay_chisq([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2)/float(len(t)))
+  print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_log10_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2))
+  print 'Reduced chisq value for this solution: %1.5e'%(kelly_delay_chisq([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_log10_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2)/float(len(t)))
   chain_fnm_string = outputdir+'chain_samples_%s'%(output_tag)
   print 'saving emcee sample chain in %s'%chain_fnm_string
   #np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
@@ -490,7 +508,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   #reorder variables for presentation purposes
   #samples[:,[0,1,2,3,4]] = samples[:,[0,4,1,2,3]]
-  fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
+  fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\log_{10}(\tau/days)$"])
   # REMOVE OFFSET FROM TRIANGLE PLOTS
   count=0
   for ax in fig.get_axes():

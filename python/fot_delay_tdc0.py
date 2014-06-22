@@ -69,23 +69,24 @@ if __name__ == "__main__":
     # run the emcee delay estimator
     #emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
 
-    sig1, tau1 = emcee_lightcurve_estimator(t, m1, em1, args.output_tag+'_lc1', 
+    sig1, log10_tau1 = emcee_lightcurve_estimator(t, m1, em1, args.output_tag+'_lc1', 
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max)
 
-    sig2, tau2 = emcee_lightcurve_estimator(t, m2, em2, args.output_tag+'_lc2', 
+    sig2, log10_tau2 = emcee_lightcurve_estimator(t, m2, em2, args.output_tag+'_lc2', 
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max)
-
+    tau1=10.**log10_tau1
+    tau2=10.**log10_tau2
     sig=0.5*(sig1+sig2)
-    tau = max(tau1,tau2)
+    tau = 10.**(0.5*(log10_tau1+log10_tau2)) #geometric mean
     print '#############################'
     print 'sigma_1\t\tsigma2\t\ttau1\t\ttau2'
     print '%1.2e\t%1.2e\t%1.2e\t%1.2e'%(sig1, sig2, tau1, tau2)
     print '#############################'
-    emcee_delay_estimator(t, m1, em1, m2, em2 ,args.output_tag, 
+    emcee_delay_estimator(t, m1, em1, m2, em2 ,args.output_tag+'_dt', 
 			  args.delay_prior,    args.delay_prior_min,    args.delay_prior_max,
 			  args.delta_mag_prior, args.delta_mag_prior_min, args.delta_mag_prior_max, 
 			  sig,    		args.sigma_prior_min,    args.sigma_prior_max, 
