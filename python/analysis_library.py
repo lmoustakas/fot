@@ -25,8 +25,11 @@ def get_chain(filename):
 	samples = npzfile['arr_0']
 	return samples
 
-def get_parameter_samples(samples):
-	return samples[:,0], samples[:,1], samples[:,2], samples[:,3], samples[:,4]
+def get_parameter_samples(samples, kind = 'dt'):
+	if(kind =='dt'):
+	   return samples[:,0], samples[:,1], samples[:,2], samples[:,3], samples[:,4]
+	if(kind =='lc'):
+	   return samples[:,0], samples[:,1], samples[:,2]
 
 def filter_samples(array, n_iterations, n_iteration_filter):
 	array_index = range(0,len(array))
