@@ -57,15 +57,29 @@ if __name__ == "__main__":
 	exit()
 
     data=ascii.read(fname,data_start=6)
-    t=data['col1']
+    t_in=data['col1']
     f1=data['col2']
     ef1=data['col3']
     f2=data['col4']
     ef2=data['col5']
-    m1  = 22.5-2.5*log10(f1)
-    em1 = 2.5*ef1/f1/log(10.)
-    m2  = 22.5-2.5*log10(f2)
-    em2 = 2.5*ef2/f2/log(10.) 
+    t=[]
+    m1=[]
+    m2=[]
+    em1=[]
+    em2=[]
+    for k in range(0,len(t_in)):
+	if(f1[k]>0. and f2[k]>0.):
+          t.append(t_in[k])
+	  m1.append(22.5-2.5*log10(f1[k]))
+	  em1.append(2.5*ef1[k]/f1[k]/log(10.))
+	  m2.append(22.5-2.5*log10(f2[k]))
+	  em2.append(2.5*ef2[k]/f2[k]/log(10.))
+    t = array(t)
+    m1=array(m1)
+    m2=array(m2)
+    em1=array(em1)
+    em2=array(em2)
+    print 'number of points', len(t)
     # run the emcee delay estimator
     #emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
 

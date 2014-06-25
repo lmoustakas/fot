@@ -37,14 +37,17 @@ def run_queue(numjobs, com):
 
 
 rung_list = [0,1,2,3,4]
-tdc1_data_dir = '/data2/fot/data/tdc1/'
+tdc1_data_dir = os.environ['FOTDIR']+'/data/tdc1/'
 
 
 #rung_list = rung_list[::-1] # run backwards
 for rung in rung_list:
   print tdc1_data_dir + 'rung%d/'%rung + '*.txt'
   fnames = glob.glob(tdc1_data_dir + 'rung%d/'%rung + '*.txt')
+  fnames = sorted(fnames)
+  counter=0
   for f in fnames:
+    counter+=1
     fnm = f.split('/')[len(f.split('/'))-1]
     fnm = fnm.split('.')[0]
 
@@ -54,11 +57,14 @@ for rung in rung_list:
 
     print fnm
     #for ph_un_add in ph_un_add_list:
-    com = './fot_delay_tdc1.py -i %s.txt -l \'A\' -m \'B\' -su 0. -dtp 0. -dtpmin -1600. -dtpmax 1600. -dmp 0. -dmpmin -10. -dmpmax 10. -sp 1. -spmin 0.00007 -spmax 70. -tp 3500. -tpmin 10. -tpmax 100000. -mp -13. -mpmin -30 -mpmax 100. -z 0. -o %s > %s.log &'%(fnm ,fnm,  log_fnm)
+    #com = './fot_delay_tdc1.py -i %s.txt -l \'A\' -m \'B\' -su 0. -dtp 0. -dtpmin -1600. -dtpmax 1600. -dmp 0. -dmpmin -10. -dmpmax 10. -sp 1. -spmin 0.00007 -spmax 70. -tp 3500. -tpmin 10. -tpmax 100000. -mp -13. -mpmin -30 -mpmax 100. -z 0. -o %s > %s.log'%(fnm ,fnm,  log_fnm)
+    com = '%s/fot_delay_tdc1.py -i %s.txt -l \'A\' -m \'B\' -su 0. -dtp 0. -dtpmin -1600. -dtpmax 1600. -dmp 0. -dmpmin -10. -dmpmax 10. -sp 1. -spmin 0.00007 -spmax 70. -tp 3500. -tpmin 10. -tpmax 100000. -mp -13. -mpmin -30 -mpmax 100. -z 0. -o %s'%(os.environ['FOTDIR']+'/python', fnm ,fnm)
     print ''
     print datetime.datetime.now()
-    print com
-    run_queue(njobs,com)	
+    f=open('./inputs/rung%d/input.%d'%(rung,counter),'w')
+    f.write(com)
+    f.close()
+    #run_queue(njobs,com)	
 
 
 
