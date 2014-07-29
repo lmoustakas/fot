@@ -105,5 +105,6 @@ if __name__ == "__main__":
 			  args.delta_mag_prior, args.delta_mag_prior_min, args.delta_mag_prior_max, 
 			  sig,    		args.sigma_prior_min,    args.sigma_prior_max, 
 			  tau,                  min(tau1,tau2),      args.tau_prior_max, 
-			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max)
+			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max,
+			  poly=0)
    

@@ -162,9 +162,12 @@ def hojjati_ll(time_array, flux_array, ph_err_array, sig, tau, b):
   ll=-array(matrix(flux_array[0:Nsamp])*matrix(M_inv)*matrix(flux_array[0:Nsamp]).T)[0][0]-log_M_det-Nsamp*log(2.*np.pi)
   return ll
 
-def merge(_t, _x1, _e1, _x2, _e2, _dt, _dmag):
+def merge(_t, _x1, _e1, _x2, _e2, _dt, _poly_vals):
   _t2  = _t.copy()  - _dt 
-  _x2  = _x2.copy() - _dmag 
+  _polynomial = 0.*_t2
+  for k in range(0,len(_poly_vals)):
+    _polynomial += _poly_vals[k]*pow(_t2,k)
+  _x2  = _x2.copy() - _polynomial
   
   t_cat=np.concatenate([_t,_t2])
   x_cat=np.concatenate([_x1,_x2])
@@ -178,13 +181,29 @@ def merge(_t, _x1, _e1, _x2, _e2, _dt, _dmag):
   return  t_cat_sort, x_cat_sort, e_cat_sort
 
 def kelly_delay_chisq(theta, time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2):
-  delay, delta_mag, sig, log10_tau, avg_mag = theta
-  t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
+  #delay, delta_mag, sig, log10_tau, avg_mag = theta
+  poly = len(theta)-5
+  delay  = theta[0]
+  delta_mag = theta[1]
+  poly_vals = theta[1:poly+2]
+  sig = theta[poly+2]
+  log10_tau = theta[poly+3]
+  avg_mag = theta[poly+4]
+  t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, poly_vals)
   return kelly_chisq([sig,log10_tau,avg_mag], t, x, e)
 
 def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2):
-  delay, delta_mag, sig, log10_tau, avg_mag = theta
-  t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, delta_mag)
+  poly = len(theta)-5
+  delay  = theta[0]
+  delta_mag = theta[1]
+  poly_vals = theta[1:poly+2]
+  #print poly_vals
+  sig = theta[poly+2]
+  log10_tau = theta[poly+3]
+  avg_mag = theta[poly+4]
+  
+  
+  t, x, e = merge(time_array, flux_array1, ph_err_array1, flux_array2, ph_err_array2, delay, poly_vals)
   return kelly_ll([sig, log10_tau, avg_mag], t, x, e)
 
 def emcee_lightcurve_estimator(t, lc1, e1, output_tag, 
@@ -346,7 +365,8 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 			  delta_mag_prior, delta_mag_prior_min, delta_mag_prior_max, 
 			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
 			  tau_prior,       tau_prior_min,       tau_prior_max, 
-			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max):
+			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max,
+			  poly = 0):
   # append time to output tag.
   outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
@@ -372,7 +392,13 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 
   # flat priors
   def lnprior(_theta):
-    _delay, _delta_mag, _sigma, _log10_tau, _avg_mag = _theta
+    #_delay, _poly, _sigma, _log10_tau, _avg_mag = _theta
+    _delay = _theta[0]
+    _delta_mag = _theta[1]
+    _sigma = _theta[poly+2]
+    _log10_tau = _theta[poly+3]
+    _avg_mag = _theta[poly+4]
+    #print 'theta', _theta
     if delay_prior_min < _delay < delay_prior_max \
 	and delta_mag_prior_min<_delta_mag<delta_mag_prior_max \
 	and sigma_prior_min<_sigma<sigma_prior_max \
@@ -395,14 +421,26 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print ''
   #RUN EMCEE
   
-  ndim = 5
+  ndim = 5+poly
   nwalkers = 100
   #nwalkers = 10 # minimum possible number of walkers
   n_burn_in_iterations = 100
   n_iterations = 2000
  
   print 'pos'
-  prior_vals=[delay_prior, delta_mag_prior, sigma_prior, log10_tau_prior, avg_mag_prior]
+  poly_prior = 0.*arange(poly+1, dtype=float64)
+  poly_prior[0] = delta_mag_prior
+  #prior_vals=[delay_prior, delta_mag_prior, sigma_prior, log10_tau_prior, avg_mag_prior]
+  prior_vals = [delay_prior]
+  for k in range(0,poly+1):
+    prior_vals.append(poly_prior[k])
+    print 'appending priors', k
+  prior_vals.append(sigma_prior)
+  prior_vals.append(log10_tau_prior)
+  prior_vals.append(avg_mag_prior)
+  
+  print 'prior_vals', prior_vals
+  
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
   pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
   #pos = [[uniform(delay-100,delay+100.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
@@ -420,27 +458,40 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 
   samples = sampler.chain[:, int(0.5*float(n_burn_in_iterations)):, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
-  mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  mc_vals = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  #mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   print '\tErrors based on 16th, 50th, and 84th percentile'
   print '\tParam     \tMC_rec\terr_up\terr_low'
-  print '\tdelay     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delay[0], mc_delay[1], mc_delay[2])
-  print '\tavg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_avg_mag[0], mc_avg_mag[1], mc_avg_mag[2])
-  print '\tdelta_mag \t%1.2e\t+%1.2e\t-%1.2e'%(mc_delta_mag[0], mc_delta_mag[1], mc_delta_mag[2])
-  print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
-  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_log10_tau[0], mc_log10_tau[1], mc_log10_tau[2])
+  print '\tdelay     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[0][0], mc_vals[0][1], mc_vals[0][2])
+  print '\tdelta_mag \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[1][0], mc_vals[1][1], mc_vals[1][2])
+  if(poly>0):
+    for k in range(1,poly+1):
+      print '\tpoly %d \t%1.2e\t+%1.2e\t-%1.2e'%(k,mc_vals[k+1][0], mc_vals[k+1][1], mc_vals[k+1][2])    
+  print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[poly+2][0], mc_vals[poly+2][1], mc_vals[poly+2][2])
+  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[poly+3][0], mc_vals[poly+3][1], mc_vals[poly+3][2])
+  print '\tavg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[poly+4][0], mc_vals[poly+4][1], mc_vals[poly+4][2])
 
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"],
 			#truths=[mc_delay[0], mc_delta_mag[0], mc_sigma[0], mc_tau[0], mc_avg_mag[0]])
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   #reorder variables for presentation purposes
-  fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\log_{10}(\tau/days)$"])
+  labels = ["delay"]
+  labels.append("delta_mag")
+  if(poly>0):
+    for k in range(1,poly+1):
+      labels.append("poly_%d"%(k))
+  labels.append("$\sigma$")
+  labels.append(r"$\tau$")
+  labels.append("avg_mag")
+  fig = triangle.corner(samples, labels=labels)
+  #fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\log_{10}(\tau/days)$"])
   #print fig.get_axes()
   count=0
   # REMOVE OFFSET FROM TRIANGLE PLOTS
   for ax in fig.get_axes():
     count+=1
-    if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
-    if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if((count-1)%(5+poly)==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if(count>=(5+poly)*(4+poly)): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     
   ax1 = fig.add_subplot(5,2,2)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
@@ -452,9 +503,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   setp(ax1.get_xticklabels(), visible=False) 
   ax2 = fig.add_subplot(5,2,4, sharex=ax1)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
-  errorbar(t-mc_delay[0], lc2-mc_delta_mag[0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
-  miny=min(min(lc1-e1),min(lc2-mc_delta_mag[0]-e2))
-  maxy=max(max(lc1+e1),max(lc2-mc_delta_mag[0]+e2))
+  errorbar(t-mc_vals[0][0], lc2-mc_vals[1][0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  miny=min(min(lc1-e1),min(lc2-mc_vals[1][0]-e2))
+  maxy=max(max(lc1+e1),max(lc2-mc_vals[1][0]+e2))
   ylim(miny,maxy+0.5*(maxy-miny))
   xlabel('time, days')
   ylabel('magnitude')
@@ -477,6 +528,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   
   samples = sampler.chain[:, int(0.5*float(n_iterations)):, :].reshape((-1, ndim))
   print len(samples)
+  '''
   print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 
   mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
@@ -489,8 +541,35 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print 'sigma     \t%1.5e\t+%1.2e\t-%1.2e'%(mc_sigma[0], mc_sigma[1], mc_sigma[2])
   print 'log10_tau       \t%1.5e\t+%1.2e\t-%1.2e'%(mc_log10_tau[0], mc_log10_tau[1], mc_log10_tau[2])
   print ''
-  print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_log10_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2))
-  print 'Reduced chisq value for this solution: %1.5e'%(kelly_delay_chisq([mc_delay[0],mc_delta_mag[0],mc_sigma[0],mc_log10_tau[0],mc_avg_mag[0]], t, lc1, e1, lc2, e2)/float(len(t)))
+  '''
+  print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+  mc_vals = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  #mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
+  print '\tErrors based on 16th, 50th, and 84th percentile'
+  print '\tParam     \tMC_rec\terr_up\terr_low'
+  print '\tdelay     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[0][0], mc_vals[0][1], mc_vals[0][2])
+  print '\tdelta_mag \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[1][0], mc_vals[1][1], mc_vals[1][2])
+  if(poly>0):
+    for k in range(1,poly+1):
+      print '\tpoly %d \t%1.2e\t+%1.2e\t-%1.2e'%(k,mc_vals[k+1][0], mc_vals[k+1][1], mc_vals[k+1][2])    
+  print '\tsigma     \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[poly+2][0], mc_vals[poly+2][1], mc_vals[poly+2][2])
+  print '\ttau       \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[poly+3][0], mc_vals[poly+3][1], mc_vals[poly+3][2])
+  print '\tavg_mag   \t%1.2e\t+%1.2e\t-%1.2e'%(mc_vals[poly+4][0], mc_vals[poly+4][1], mc_vals[poly+4][2])
+
+  # The 2 lines below need to be brough back
+
+  theta_best = [mc_vals[0][0]]
+  theta_best.append(mc_vals[1][0])
+  if(poly>0):
+    for k in range(1,poly+1):
+      theta_best.append(mc_vals[k+1][0])
+  theta_best.append(mc_vals[poly+2][0])
+  theta_best.append(mc_vals[poly+3][0])
+  theta_best.append(mc_vals[poly+4][0])
+  
+  print 'Likelihood value for this solution: %1.5e'%(kelly_delay_ll(theta_best, t, lc1, e1, lc2, e2))
+  print 'Reduced chisq value for this solution: %1.5e'%(kelly_delay_chisq(theta_best, t, lc1, e1, lc2, e2)/float(len(t)))
+  
   chain_fnm_string = outputdir+'chain_samples_%s'%(output_tag)
   print 'saving emcee sample chain in %s'%chain_fnm_string
   #np.savez(outputdir+'chain_samples_%s'%(output_tag), sampler.chain[:, 0:, :].reshape((-1, ndim)))
@@ -508,13 +587,16 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   #fig = triangle.corner(samples, labels=["delay", "delta_mag", "$\sigma$", r"$\tau$", "avg_mag"])
   #reorder variables for presentation purposes
   #samples[:,[0,1,2,3,4]] = samples[:,[0,4,1,2,3]]
-  fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\log_{10}(\tau/days)$"])
+  #fig = triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\log_{10}(\tau/days)$"])
+  fig = triangle.corner(samples, labels=labels)
   # REMOVE OFFSET FROM TRIANGLE PLOTS
   count=0
   for ax in fig.get_axes():
     count+=1
-    if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
-    if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    #if((count-1)%5==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    #if(count>=20): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if((count-1)%(5+poly)==0): ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    if(count>=(5+poly)*(4+poly)): ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
     
   ax1 = fig.add_subplot(5,2,2)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
@@ -526,9 +608,20 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   setp(ax1.get_xticklabels(), visible=False) 
   ax2 = fig.add_subplot(5,2,4, sharex=ax1)
   errorbar(t,lc1,e1, fmt='b.', ms=3, label='light curve 1')
-  errorbar(t-mc_delay[0], lc2-mc_delta_mag[0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
-  miny=min(min(lc1-e1),min(lc2-mc_delta_mag[0]-e2))
-  maxy=max(max(lc1+e1),max(lc2-mc_delta_mag[0]+e2))
+  t2  = t.copy()  - mc_vals[0][0]
+  polynomial = 0.*t2
+  for k in range(0,poly+1):
+  #for k in range(0,poly):
+    polynomial += mc_vals[k+1][0]*pow(t2,k)
+  x2  = lc2.copy() - polynomial
+  
+  errorbar(t2, x2, e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  miny=min(min(lc1-e1),min(lc2-mc_vals[1][0]-e2))
+  maxy=max(max(lc1+e1),max(lc2-mc_vals[1][0]+e2))
+
+  #errorbar(t-mc_delay[0], lc2-mc_delta_mag[0], e2, fmt='r.', ms=3, label='del. and mag. shift lc2')
+  #miny=min(min(lc1-e1),min(lc2-mc_delta_mag[0]-e2))
+  #maxy=max(max(lc1+e1),max(lc2-mc_delta_mag[0]+e2))
   ylim(miny,maxy+0.5*(maxy-miny))
   xlabel('time, days')
   ylabel('magnitude')
