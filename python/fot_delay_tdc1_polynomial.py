@@ -86,7 +86,7 @@ if __name__ == "__main__":
     em1 = np.add(em1,args.systematic)
     em2 = np.add(em2,args.systematic)
     
-    t,m1,m2,em1,em2 = remove_outliers(t,m1,m2,em1,em2)
+    t,m1,m2,em1,em2 = remove_outliers(t,m1,m2,em1,em2, display=False)
     '''
     t = t[::20]
     m1 = m1[::20]
@@ -120,7 +120,6 @@ if __name__ == "__main__":
     '''
     # run the emcee delay estimator
     #emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
-    '''
     sig1, log10_tau1 = emcee_lightcurve_estimator(t, m1, em1, args.output_tag+'_lc1', 
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
@@ -130,6 +129,7 @@ if __name__ == "__main__":
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max)
+    '''
     tau1=10.**log10_tau1
     tau2=10.**log10_tau2
     sig=0.5*(sig1+sig2)
@@ -151,5 +151,5 @@ if __name__ == "__main__":
 			  args.sigma_prior,	args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,	args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max,
-			  poly=5)
+			  poly=3)
    
