@@ -26,23 +26,47 @@ print shape(((chain[:,0].reshape((100, 4000)))[:,2000:4000])), ((chain[:,0].resh
 #print ravel(reshape(chain[:,0], (-1, 100))[2000:4000,:])
 #print ravel(reshape(chain[:,0], (-1, 100))[2000:4000,:])
 figure()
-subplot(311)
+subplot(411)
 plot((chain[:,0]))
-subplot(312)
+subplot(412)
 plot(ravel((chain[:,0].reshape((100, 4000)))[:,2000:4000]))
-subplot(313)
-plot((chain[2000:,0]))
-#show()
+subplot(413)
+print len(sort(ravel((chain[:,0].reshape((100, 4000)))[:,2000:4000])))
+plot(sort(ravel((chain[:,0].reshape((100, 4000)))[:,2000:4000])), arange(200000, dtype=float64)/200000., ',')
+subplot(414)
+x = sort(ravel((chain[:,0].reshape((100, 4000)))[:,2000:4000]))
+c = arange(200000, dtype=float64)/200000.
+N=len(x)
+print 'calculating minimum'
+alpha = 0.68
+'''
+figure()
+for n in range(0,int((1.-alpha)*200000))[::2000]:
+  #print n, len(c[n:]), c[n], max(c[n:]-c[n]),  (c[n:]-c[n])[c[n:]-c[n]<0.68], (x[n:]-x[n])[c[n:]-c[n]<0.68]
+  N = len((x[n:]-x[n])[c[n:]-c[n]<0.68])
+  plot((x[n:]-x[n])[c[n:]-c[n]<alpha],(c[n:]-c[n])[c[n:]-c[n]<alpha],',')
+  print n, max((x[n:]-x[n])[c[n:]-c[n]<alpha]), x[n], c[n], c[numpy.max(numpy.where(abs(c[n:]-c[n])<=alpha))]
+  #,  len(c[n:]), c[n], max(c[n:]-c[n]),(x[n:]-x[n])[c[n:]-c[n]<0.68],(x[n:]-x[n])[c[n:]-c[n]<0.68]
+  #print (numpy.where(abs(c[n:]-c[n]-0.001)<=alpha))
+  #print numpy.max(numpy.where(abs(c[n:]-c[n]-0.001)<=alpha))
+print 'DONE WITH LOOP'
+'''
+newlist = array([ max((x[n:]-x[n])[c[n:]-c[n]<alpha]) for n in range(0,int((1.-alpha)*200000))[::200]])
+#newlist = [ x[numpy.max(numpy.where(abs(c[n:]-c[n])<=alpha))] for n in range(0,int((1.-alpha)*200000))[::20]]
+#newlist = [ x[numpy.max(numpy.where(abs(c[n:]-c[n]-0.001)<=alpha))]-x[n] for n in range(0,int((1.-alpha)*200000))[::20]]
+print 'done calculating minimum'
+print numpy.where((newlist == min(newlist)))[0]
+print x[numpy.where((newlist == min(newlist)))[0]*200][0],min(newlist)
+
 
 figure(figsize=(8,8))
 for n in range(0,8):
   subplot(3,3,n+1)
-  hist(ravel((chain[:,n].reshape((100, 4000)))[:,2000:4000]), bins=100)
-subplots_adjust(bottom=0.03, top=0.97)
-
-figure(figsize=(8,8))
-for n in range(0,8):
-  subplot(3,3,n+1)
-  hist(ravel((chain[:,n].reshape((100, 4000)))[:,2000:4000]), bins=100)
+  hist(ravel((chain[:,n].reshape((100, 4000)))[:,2000:4000]), bins=50)
+  if(n==0):
+    plot([x[numpy.where((newlist == min(newlist)))[0]*200][0],x[numpy.where((newlist == min(newlist)))[0]*200][0]], [0,25000], 'r-')
+    plot([x[numpy.where((newlist == min(newlist)))[0]*200][0]+min(newlist),x[numpy.where((newlist == min(newlist)))[0]*200][0]+min(newlist)], [0,25000], 'r-')
+    m = x[numpy.where((newlist == min(newlist)))[0]*200][0]+min(newlist)/2.
+    plot([m,m], [0,25000], 'r-')
 subplots_adjust(bottom=0.03, top=0.97)
 show()
