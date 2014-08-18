@@ -151,5 +151,5 @@ if __name__ == "__main__":
 			  args.sigma_prior,	args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,	args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max,
-			  poly=3)
+			  poly=2)
    
