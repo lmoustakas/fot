@@ -26,201 +26,369 @@
 \newcommand\tot{{\rm tot}}
 \newcommand\mhat{{\hat m}}
 
-\shorttitle{Inferring Time Delays in Strong Lenses}
+\shorttitle{Inferring Time Delays in Strong Gravitational Lenses}
 \shortauthors{Leonidas A.~Moustakas \& Andrew~Romero-Wolf}
 
 \begin{document}
 
-\title{Bayesian Inference Time Delay Recovery for Strong Gravitational Lenses}
-
-\author{Leonidas A. Moustakas \& Andrew Romero-Wolf\altaffilmark{1}}
+\title{Optimizing Observing Campaigns for Strong  Gravitational Lens Time Delays} 
+\author{Leonidas A. Moustakas \& Andrew Romero-Wolf\altaffilmark{1}} 
 \altaffiltext{1}{Jet Propulsion Laboratory, California Institute of
-  Technology, 4800 Oak Grove Dr, MS 169-506, Pasadena, CA 91109} 
+  Technology, 4800 Oak Grove Dr, M/S\,169-506, Pasadena, CA~~91109}
 
 \begin{abstract}
-We report on an inference technique for measuring time delays
-in time-varying strong gravitational lenses. If time delay
-measurements can be made robustly and with meaningful estimates of
-precision, they can be powerful for many applications, including 
-cosmography and dark matter structure studies. By using 
-
-  Gravitational  lensing  on   astronomical  scales.  Methodology  for
-  inferring time delays in time-streams of photometric measurements in
-  a multiply  imaged quasar.  Bayesian inference.  Comparison to other
-  techniques  including matrix  inversion.  Realistic  simulated light
-  curves  produced, and  recovery efficiency  systematically explored,
-  marginalizing over  the nuisance  parameters of the  parameters that
-  control the behavior of  the light curves.  Microlensing effects and
-  considerations.  Main conclusions.
+  We report on a flexible and extendable inference technique for
+  measuring time delays between images in time-varying strong
+  gravitational lenses.  Robust time delays and meaningful estimates
+  of the measurement uncertainties are necessary for time delays to be
+  used for inference on the structure and substructure properties of
+  the lensing objects, and to determine cosmological parameters
+  including the Hubble constant.  Quasar light curves have been shown
+  to be described well by damped random walk behavior. We build a
+  generative model of paired quasar light curves which are offset in
+  time and by a multiplicative value, and build an inference process
+  using the emcee Markov Chain Monte Carlo engine.  With this
+  framework, we explore the problem of designing an observational
+  campaign that satisfies specified thresholds for a successful
+  measurement of short time delays at a particular precision level,
+  and apply it to a notional \emph{Hubble} Space Telescope
+  lens-monitoring experiment, to determine the observing campaign
+  characteristics, and the reproducible photometric measurement
+  precision levels that are required to secure a greater than 90\%
+  probability of measuring a 1.0-day time delay to a combined random
+  and systematic precision of better than one hour.  We discuss the
+  extensibility of this approach to other experimental designs.
 \end{abstract}
  
 \keywords{gravitational lensing --- cosmology: dark matter} 
 
 \section{Introduction}
 
-% \begin{equation}
-% {\rm S} = {{D_{\rm ang}(z_{\rm cluster}, z_{\rm target})}\over{D_{\rm ang}(z_{\rm target})}} 
-%               {{D_{\rm ang}(z_{\rm model})}\over{D_{\rm ang}(z_{\rm cluster},z_{\rm model})}}. 
-% \end{equation}
+{\bf Consider a concise introductory few sentences for strong lensing
+  and gravitational lenses, possibly accompanied by a new simple
+  graphic showing a typical quasar lens, with a ``full'' light curve
+  on top of the source-plane quasar, and the various ``offset'' light
+  curves connected to each of the lensed images but each on top of the
+  other in a set of boxes, so that they are all on the observer's time
+  frame of reference. This should be an easy illustration to put
+  together, would set the tone for the paper for a more general
+  audience (thinking of graduate students for example), and would be a
+great graphic to use for future talks on the topic, so very much worth
+the effort.} 
 
-% \begin{figure*}[t]
-% \begin{center}
-% \plotone {figures/magfig_macs1149_11495_z9p7LAST.png}
-% \caption{MACS 1149. Top left: The \emph{HST} ACS and WFC3 mosaic
-%   footprint (inner and outer polygons), used to calculate the area
-%   accessed by each. The image is the segmentation map. Remaining three
-%   panels: The magnification map for source at the redshifts indicated,
-%   with magnification strength shown in the bar on the right.
-% }\label{fig:macs1149}
-% \end{center}
-% \end{figure*}
+Gravitational lensing time delays are a competitive tool for
+cosmological measurements \citep{Coe2009b}, particularly for the
+Hubble constant \citep[$H_0$;][]{Refsdal1964a}.  Indeed, there is
+presently tension in the value for $H_0$ inferred by the recent
+\emph{Planck} cosmic microwave background analysis, and the
+best-determined values derived by state of the art modeling of
+gravitational lenses \citep[e.g.][]{Suyu2013a,Suyu2013b}.  Such
+measurements depend on detailed modeling of often complex
+gravitational environments, but the foundation is the time delay
+estimate itself, which is a quantity that depends on many details of
+the observational campaign timing and duration, and the associated
+photometric measurements of each individual image in a lens. Heroic
+campaigns are required \citep[e.g.][]{Tewes2013a}, followed by
+analysis of the data timestream where the potential effect of
+degenerate or incorrect solutions are ideally identified and
+characterized in advance.
 
-% \begin{figure}[t]
-% \begin{center}
-% \plotone{figures/mastervolume.png}
-% %\includegraphics{../figures/b0712_model_for_masterlens.png}
-% \caption{The cumulative volume accessible as a function of limiting
-%   magnification, for a set of twelve CLASH clusters (and their sum). 
-% }\label{fig:volume}
-% \end{center}
-% \end{figure}
+Time delays also have the potential of being used to infer properties
+of the dark matter substructure expected to be contained within
+lensing galaxies \citep{Keeton2009a}.  Exploiting time delays in this
+way requires an order of magnitude higher precision than the current
+typical $\sim1$-day precision measurements, as well as robust
+knowledge of any systematic offset effects, and so the analysis
+challenge is correspondingly greater.  
 
-References to include: * Alex Kim; Refsdal; cosmograil; Suyu;
-Fassnacht; 
+Therefore, the challenges in measuring robust time delays may be
+great, but the payoff has the potential of being great. This motivates
+us to develop a time delay measurement technique that can be used both
+for analysis of existing data, but also for the systematic study of
+tailored sets of observations and observational characteristics, for
+optimal design of campaigns, tailored to the needs of the desired
+scientific goals. Many techniques for \emph{fitting} observations have
+been explored to date; see the discussion in \citet{Dobler2013a} and
+{\bf TDC1} for a detailed review.  In the context of the long-standing
+COSMOGRAIL efforts to measure time delays in gravitational lenses
+using long-term ground-based campaigns, THISREFERENCE explored the
+influence of various relevant observational choices for time delay
+measurements. {\bf Perhaps say one or two more things about this
+  here.}
 
+In this work, we take advantage of a predictive model for the time
+variations of quasar light curves, to set up a Bayesian inference
+framework.  These are developed in Section~\ref{sec:tdanalysis}, based
+on descriptions of simulated quasar light curve pairs for particular
+observational conditions.  A notional experimental design is explored
+in detail in Section~\ref{sec:experiment}, to demonstrate our
+framework's application to achieving a desired time delay precision at
+a high confidence of success.  We discuss the results, and extensions
+of this methodology to other experiments in
+Section~\ref{sec:discussion}.  All code is written in python, version
+controlled via the github repository, and is available upon request.
 
-Context. Lensing. Distances light travels, and differences in arrival
-time versus relative distance differences.
+\section{Inference Analysis Framework}\label{sec:tdanalysis}
 
-History and realization. Power of time delays for H0, Refsdal, leading into modern
-era of cosmology.  Relevance of lenses for present discussions of
-cosmography, interesting tension between Planck and lensing results,
-quote the results on that.  Potential improvement in quality of
-results with greater time delay precision, in the limit of mass model
-and environment characterization improvements. 
-
-Looking into the future: Dark matter study, New Channel \citep{Keeton2009a}, driving us to
-time delay precisions of hours or better.  Cf Oguri's compilation,
-cosmograil precision from ground-based campaigns to date. Past and current work. 
-Techniques generally developed to date, including interpolating, cross-correlations, maximum likelihood (Fasscnacht, COSMOGRAIL, Hojatti+Kim+Linder, others). Naturalness of setting up a Bayesian approach, if there is a clear predictive model for the time variations of quasar light curves. 
-
-\subsection{Introducing RXJ1131}
-
-Why it's an interesting target, H0, dark matter, observations with Hubble etc, models for it predicting its observational parameters including the time delays, the interesting thing pointed out in KM09 that an order-reversal could be quite interesting. 
-
-Figures: HST and model plot. 
-
-Possibly a table showing existing observations/measurements, drawn from literature. 
-
-\subsection{Bayesian Analysis Framework}
-
-Bayes rule, model and observational parameters, MCMC implementation. The things that we need -- ie a predictive model that connects the parameter sets, and an understanding of the obsrevational uncertainties.
-
-\section{Simulating light curves}
-\subsection{Quasar physics}
-
-This is a key ingredient, since the physical structure of an accreting supermassive black hole determines the character of the light variations, and we need to get it right if we are forecasting how well we can recover information. 
-
-Kelly's damped random walk technique, parametrization for the light curve generation and (brief) motivation/intperpretation of these parameters, literature vetting and testing these. 
-\subsection{Observing cadences and campaigns}\label{}
-
-Choices for observing campaigns (remember, this is just for straight light curves at the moment. )
-
-Generally on how this may be set up for different circumstances, and what types of campaigns may apply to 1131, including what campaigns have been implemented (e.g. COSMOGRAIL). 
-
-\subsection{Photometric uncertainties}\label{}
-
-Random and systematic, possibility of covariances, and so on.  
-
-Relative consequences or advantages of ground versus space. 
-
-Table summarizing the cadence/campaign/uncertainty combinations we adopt in this paper. 
-
-Figure of sample light curves and reconstructed parameters. 
-
-
-\section{Measuring Time Delays}
-
-The likelihood function used to reconstruct the quasar light curve damped random walk parameters is given by Kelly et al. 2009. Written as a log-likelihood
+In this work, we concentrate on optical, radio-quiet quasars. The
+variability in these types of objects has been shown to be consistent
+with a damped random walk process, where the fluctuations have a
+characteristic amplitude and decay time that correlate with the black
+hole mass and luminosity \citep{Kelly2009a}.  We will call these the
+``light curve structure parameters'' in the discussion that
+follows. {\bf Need to provide the direct equation here, for generating
+  light curves, and include a quick explanation of the correlation
+  with black hole mass and luminosity properties. This is going to be
+  referred back to from the Experimental Design Section, to describe
+  how the model light curves were produced, which are also shown in
+  the inset of Figure~\ref{fig:triangle}.} 
+\begin{equation}
+L(t)=f(\sigma,\tau,m).\label{eq:lightcurve}
+\end{equation}
+The behavior is likely
+driven by stochastic thermal processes in their accretion disks, but
+for our purposes what matters most is the model prescription, so we
+can use a Bayesian inference approach to connect the model parameters,
+{\bf m} to the data observables {\bf d}.
+\begin{equation}
+p({\mathbf m} | {\mathbf d}) = 
+{{p({\mathbf d} | {\mathbf m})p({\mathbf m})}
+\over{p({\mathbf  d})}}. \nonumber 
+\end{equation}
+We implement this in two ways; first to analyze a single time-stream
+of observations, towards estimating the structure parameters of the
+light curve; and second, to analyze combined pairs of ostensibly
+correlated light curves, to determine the combination of the structure
+parameters and the offset parameters that best join the light
+curves. The likelihood function used to reconstruct the quasar light
+curve damped random walk parameters is given by
+\citet{Kelly2009a}. Written as a
+log-likelihood,
 \begin{align} 
-& \log\mathcal{L}_{K}(\langle m\rangle, \sigma,\tau | X) = \nonumber \\
+& \log\mathcal{L}_{K}(\langle m\rangle, \sigma,\tau | X) =\nonumber \\
 & \ \ \ \ \ \ \ \ -\frac{1}{2}\sum_{i=1}^{n}\left\{
 \frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
 + 
 \log\left[2\pi\left(\Omega_i+\sigma_i^2\right)\right]
-\right\}
+\right\}, 
 \end{align}
 where 
 % \begin{equation}
 \begin{alignat}{1}
-& x_{i}^{*} = x_i-\langle m \rangle \\
-& \hat{x}_0 = 0   \\
-& \Omega_{0}=\frac{\tau\sigma^2}{2} \\
-& \hat{x}_i = a_i\hat{x}_{i-1} + \frac{a_i\Omega_{i-1}}{\Omega_{i-1}+\sigma^2_{i-1}} \left(x^{*}_{i-1}-\hat{x}_{i-1}\right) \\
-& \Omega_{i}=\Omega_{0}\left(1-a_{i}^2\right) + a_{i}^2\Omega_{i-1}\left(1-\frac{\Omega_{i-1}}{\Omega_{i-1}+\sigma_{i-1}^2}\right) \\
-& a_i = e^{-\left(t_i-t_{i-1}\right)/\tau} \\
+& x_{i}^{*} = x_i-\langle m \rangle \nonumber\\
+& \hat{x}_0 = 0   \nonumber\\
+& \Omega_{0}=\frac{\tau\sigma^2}{2} \nonumber\\
+& \hat{x}_i = a_i\hat{x}_{i-1} + \frac{a_i\Omega_{i-1}}{\Omega_{i-1}+\sigma^2_{i-1}} \left(x^{*}_{i-1}-\hat{x}_{i-1}\right) \nonumber\\
+& \Omega_{i}=\Omega_{0}\left(1-a_{i}^2\right) +
+a_{i}^2\Omega_{i-1}\left(1-\frac{\Omega_{i-1}}{\Omega_{i-1}+\sigma_{i-1}^2}\right),
+{\rm and} \nonumber\\
+& a_i = e^{-\left(t_i-t_{i-1}\right)/\tau}. \nonumber
 % & a_i = \exp\left(\frac{t_i-t_{i-1}}{\tau}\right) \\
 \end{alignat}
-The reconstruction of time-delays in this analysis relies on entirely on the physics of quasar light delay fluctuations. The light curves of two images of a quasar are merged according to hypothesized delay and magntide offset. A posterior probability is then calculated for the merged light curve under different hypotheses for the parameters $\langle m\rangle$, $\tau$, and $\sigma$.
+The offset light curves of two images of a single intrinsic quasar's 
+light curve are merged according to a hypothesized delay and magnitude
+(or multiplicative-flux) offset. A posterior probability is then
+calculated for the merged light curve under different hypotheses for
+the parameters, by $\langle m\rangle$, $\tau$, and $\sigma$.
 \begin{align}
 & \mathcal L (\Delta t, \Delta m, \sigma, \tau, \langle m \rangle | X_1, X_2)  = \nonumber \\
-& \mathcal{L}_{K} \left( \sigma, \tau, \langle m \rangle  | M(\Delta t,\Delta m ; X_1, X_2) \right)
+& \mathcal{L}_{K} \left( \sigma, \tau, \langle m \rangle  | M(\Delta
+  t,\Delta m ; X_1, X_2) \right). 
 \end{align}
-
 The posterior probability is given by
 \begin{align}
 & p(X_1, X_2 | \Delta t, \Delta m, \langle m \rangle, \sigma,\tau) \propto \nonumber \\
-&  \ \ \ \ \ \ \mathcal{L}(\Delta t, \Delta m, \langle m \rangle, \sigma,\tau | X_1, X_2)\times p(\Delta t, \Delta m, \langle m \rangle, \sigma,\tau)
+&  \ \ \ \ \ \ \mathcal{L}(\Delta t, \Delta m, \langle m \rangle,
+\sigma,\tau | X_1, X_2)\ \times\nonumber\\
+&  \ \ \ \ \ \   p(\Delta t, \Delta m, \langle m \rangle,
+\sigma,\tau). 
 \end{align}
-The assignement of priors is flat in $\Delta t$. The parameters $\sigma$ and $\tau$ are scale parameters so their priors are given by $p(\sigma)=\sigma^{-1}$ and $p(\tau)=\tau^{-1}$. The parameter $\langle m \rangle$ and $\Delta m$ are also scale parameters but they in logarithmic units and therefore are assigned flat priors.
-\section{Running the Experiment}\label{}
+The assignement of priors is flat in $\Delta t$. The parameters
+$\sigma$ and $\tau$ are scale parameters, so their priors are given by
+$p(\sigma)=\sigma^{-1}$ and $p(\tau)=\tau^{-1}$. The parameter
+$\langle m \rangle$ and $\Delta m$ are also scale parameters but as
+they are logarithmic, we assign them flat priors.  
 
-Demonstrate how well we recover structural parameters we put in, showing triangle diagrams.
-
+With the posterior probability expression, we can now use a Markov
+Chain Monte Carlo (MCMC) algorithm to explore the likelihood space of
+the model parameters, based on specified observational parameters. We
+use the emcee algorithm of \citet{Foreman-Mackey2013a}, and the
+triangle plotting algorithm of CITATIONHERE. In
+Figure~\ref{fig:example} we show a sample generated pair of light
+curves drawn for the same intrinsic quasar light curve properties,
+with a time delay of 1.0 day and a magnitude offset of
+0.3~magnitudes. {\bf Are these values correct for this example?}.  The
+triangle-plot shows the posterior likelihood distributions for the
+light curve structure parameters ($\sigma$, $\tau$), and the delay
+parameters (delay, $\Delta m$, $\langle m\rangle$), including their
+marginalized distributions. 
 
 \begin{figure}[t]
 \begin{center}
-%\plotone{figures/mastervolume.png}
 \includegraphics[width=\linewidth]{./triangle_example.pdf}
-\caption{Markov chain Monte Carlo results for an example for the parameter reconstruction of a light curve and its delayed and magnitude offset image. The quasar light curve parameters $\tau$, $\sigma$ and $\rangle m \langle$ are estimated under a hypothesis value for the delay and $\Delta m$. On the top right the quasar light curve (blue) and its delayed magnitude offset image (red) are shown with the image delay and magnitude offset corrected from the most probable values of the delay and $\Delta m$ distributions.}\label{fig:volume}
+\caption{Markov Chain Monte Carlo (MCMC) results for an example for
+  the parameter reconstruction of a light curve and its delayed and
+  magnitude offset image. The quasar light curve parameters $\tau$,
+  $\sigma$ and $\rangle m \langle$ are estimated under a hypothesis
+  value for the delay and $\Delta m$. On the top right the quasar
+  light curve (blue) and its delayed magnitude offset image (red) are
+  shown with the image delay and magnitude offset corrected from the
+  most probable values of the delay and $\Delta m$
+  distributions.}\label{fig:triangle}
 \end{center}
 \end{figure}
 
+\section{An Experimental Design}\label{sec:experiment}
 
-The cuts required by for a valid reconstruction are described as follows. We fit a Gaussian curve to the distribution of 100 simulation delay results. We have found that the python SciPy curve\_fit method, which employs the Levenberg-Marquardt algorithm, is not driven by outliers. The standard deviation $\sigma$ from the fit is used to reject reconstruction results by requiring that a reconstructed delay be within 3$\sigma$ of the true delay. We also require that the uncertainty in the delay be within 3$\sigma$ to reject poor reconstructions.
+To test our approach we explore what observational design parameters
+would be required to achieve a greater than 90\% probability of
+measuring a $\tau=1.0$~day time delay, to a combined random and
+systematic precision of better than 1.0 hour. To make this exploration
+more concrete, we assume space-quality high resolution observations
+(e.g.\ with the \emph{Hubble} Space Telescope; $HST$), to confidently
+be able to assume completely independent non-overlapping photometric
+measurements of each image in our notional gravitational lens, and
+photometric stability that may be more robustly assumed to be stable
+to at least $\sim1\%$.  For the purposes of this setup, we adopt the
+$HST$ ``orbit'' as a natural unit of time, which equals
+$\sim90$\,minutes.  
 
+{\bf Please update this paragraph to the most final (and ideally the
+  simplest) approach that we ended up taking. The fewer ``post''
+  processing magical steps we have as part of the process, the better.
+  We can also give some of the technical details on the numbers of
+  walkers, and the burn-in approach that we took, that would be fine.
+  We may also give a sense of how long things took to run on our
+  particular machine, if that would seem useful.}  The cuts required
+by for a valid reconstruction are described as follows. We fit a
+Gaussian curve to the distribution of 100 simulation delay results. We
+have found that the python SciPy curve\_fit method, which employs the
+Levenberg-Marquardt algorithm, is not driven by outliers. The standard
+deviation $\sigma$ from the fit is used to reject reconstruction
+results by requiring that a reconstructed delay be within 3$\sigma$ of
+the true delay. We also require that the uncertainty in the delay be
+within 3$\sigma$ to reject poor reconstructions.
 
-
-\begin{figure}[t]
+\begin{table}[htdp]
+\caption{Table of observational parameters.}
 \begin{center}
-%\plotone{figures/mastervolume.png}
-\includegraphics[width=\linewidth]{./ana_ll_example.pdf}
-\caption{The systematic behavior of the reconstruction is characterized using the distribution of 100 reconstructed delays. The example shown here is for 60 orbits and a photometric uncertainty of 0.05 mag. The top left shows a distribution of the results with a Gaussian fit with standard deviation $\sigma$. The bottom left shows the delay residuals, with uncertainties derived from the MCMC analysis, vs. the log-likelihood value of the reconstruction. The bottom left figure shows the same plot with the cuts described in the text. The rejected instances are highlighted in red. The top right plot shows the distribution of delay residuals after the rejected instances have been cut out. In this particular example 13\% of the events did not reconstruct with the fidelity required.}\label{fig:volume}
+\begin{tabular}{lll}
+\hline
+thing & data & description \\
+\hline
+\hline
+stuff & numbers & things \\
+stuff & numbers & things \\
+stuff & numbers & things \\
+\hline
+\end{tabular}
 \end{center}
-\end{figure}
+\label{tab:example}
+\end{table}
+
+In nature, one set of observations may accurately represent our
+statistical description of a process, but that set may or may not in
+itself contain enough information to allow a clear inference of the
+details of the underlying process. To test the efficacy of a planned
+experimental design, so we can confidently forecast the probability of
+success, an understanding of the likely nature of outlier
+measurements, and the performance as a function of the specific
+target values for each observational constraint, we generate a large
+set of simulated observations drawn from the same observational
+characteristics, and do the full inference analysis on each of these.
+The results from such a Monte Carlo exploration of an experimental
+setup are shown in Figure~\ref{fig:example}, for the set of
+observational choices given in Table~\ref{tab:example}. 
+
+% \begin{figure}[t]
+% \begin{center}
+% \includegraphics[width=\linewidth]{./ana_ll_example.pdf}
+% \caption{The systematic behavior of the reconstruction is
+%   characterized using the distribution of 100 reconstructed
+%   delays. The example shown here is for 60 orbits and a photometric
+%   uncertainty of 0.05 mag. The top left shows a distribution of the
+%   results with a Gaussian fit with standard deviation $\sigma$. The
+%   bottom left shows the delay residuals, with uncertainties derived
+%   from the MCMC analysis, vs. the log-likelihood value of the
+%   reconstruction. The bottom left figure shows the same plot with the
+%   cuts described in the text. The rejected instances are highlighted
+%   in red. The top right plot shows the distribution of delay residuals
+%   after the rejected instances have been cut out. In this particular
+%   example 13\% of the events did not reconstruct with the fidelity
+%   required.}\label{fig:volume}
+% \end{center}
+% \end{figure}
 
 \begin{figure}[t]
 \begin{center}
-%\plotone{figures/mastervolume.png}
 \includegraphics[width=\linewidth]{./systematic_examples.pdf}
-\caption{The probability of a successful measurement and resolution are shown for several examples of number of orbits and photomoetric uncertainty. The delay residuals from the simulations are shown in gray. The distribution of successful instances, with the requirements described in the text, are shown in blue. A Gaussian function is fit to the distribution of successful delay reconstructions to obtain the expected delay resolution.}\label{fig:volume}
+\caption{The probability of a successful measurement and resolution
+  are shown for several examples of number of orbits and photomoetric
+  uncertainty. The delay residuals from the simulations are shown in
+  gray. The distribution of successful instances, with the
+  requirements described in the text, are shown in blue. A Gaussian
+  function is fit to the distribution of successful delay
+  reconstructions for a convenient estimate of the final (non-outlier)
+  time delay measurement fidelity.}\label{fig:example}
 \end{center}
 \end{figure}
 
 \begin{figure}[t]
 \begin{center}
-%\plotone{figures/mastervolume.png}
 \includegraphics[width=\linewidth]{./systematics_smy.pdf}
-\caption{Summary of results for the delay measurement resolution (top panel) reconstruction success rate (bottom panel). Photometric uncertainties of 0.02~mag result in delay resolutions smaller than one day and are down to six hours for 80 orbits and above. Even with photometric uncertainties of 0.05~mag, delay resolutions smaller that 1~day can be achieved. The reconstruction success is 90\% for more than 60 orbits and photometric uncertainties below 0.05~mag.}\label{fig:volume}
+\caption{Summary of results for the delay measurement resolution (top
+  panel) reconstruction success rate (bottom panel). Photometric
+  uncertainties of 0.02~mag result in delay resolutions smaller than
+  one day and are down to six hours for 80 orbits and above. Even with
+  photometric uncertainties of 0.05~mag, delay resolutions smaller
+  that 1~day can be achieved. The reconstruction success is 90\% for
+  more than 60 orbits and photometric uncertainties below
+  0.05~mag.}\label{fig:summary}
 \end{center}
 \end{figure}
 
-\section{Discussion and Conclusions}\label{sec:disc}
+\section{Discussion and Conclusions}\label{sec:discussion}
+
+We discuss the lessons from our analysis and the process of having
+designed an experiment, with an emphasis on the possible pitfalls. The
+way that the priors are set up, and carefully establishing enough
+burn-in chains in the MCMC process, are important.  For a consistency
+check, we can analyze each image's timestream separately as well as
+jointly, and compare derived values for the light curve structure
+parameters. We have also implicitly assumed that the photometric
+measurement uncertainties are uncorrelated, which may not be the case
+for e.g.\ deconvolved ground-based observations. It is straightforward
+to incorporate such covariances in our analysis, however. 
+
+The setup in the Section~\ref{sec:experiment}, by concentrating on a
+relatively short intrinsic time delay, largely avoids the effect that
+stochastic microlensing variations in one or both of the images would
+have. This is a variational component that can be included with
+additional parametrizations in our model, and will be the topic of
+future work. Isolating and characterizing the microlensing signal in
+long-term monitoring observations of lenses is important in its own
+right, because it can be used as an additional measurement of the
+internal smooth dark matter component in lensing galaxies
+\citep{Schechter2002a}, as well as a probe for the detailed structure
+of the quasar accretion disk \citep[e.g.][]{Morgan2010a}.
+
+The method developed here has been applied to the Time Delay Challenge
+exercise (references here; marked there as the ``JPL'' contributor),
+which emulates data similar to what is expected from the Large
+Synoptic Survey Telescope (LSST).  As those are expected to be
+extremely long time-streams (extending to years), microlensing was a
+significant element in many of the light curves, which impacted our 
+performance. A new ``grander'' time delay challenge is being
+discussed, with a focus on achieving absolute precision time delay
+measurements that are more on the order of the experimental setup of
+Section~\ref{sec:experiment}. 
 
 \acknowledgements
 
 This work was carried out at Jet Propulsion Laboratory, California
-Institute of Technology, under a contract with NASA.  Thank conversations with Francis-Yan, Chuck Keeton, Frederic Courbin. 
+Institute of Technology, under a contract with NASA.  We are grateful
+for conversations with Francis-Yan Cyr-Racine, Chuck Keeton, and
+Frederic Courbin. 
 
 \bibliographystyle{apj}
 
@@ -228,3 +396,17 @@ Institute of Technology, under a contract with NASA.  Thank conversations with F
 
 \end{document}
 
+
+
+%\section{Simulating lensed quasar light curves}\label{sec:qlc} 
+
+% Choices for observing campaigns (remember, this is just for straight
+% light curves at the moment. )
+% 
+% Random and systematic, possibility of covariances, and so on.  
+% 
+% Relative consequences or advantages of ground versus space. 
+% 
+% Table summarizing the cadence/campaign/uncertainty combinations we adopt in this paper. 
+% 
+% Figure of sample light curves and reconstructed parameters. 
