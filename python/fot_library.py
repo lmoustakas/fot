@@ -16,6 +16,8 @@ import matplotlib
 # comented line below because it interferes with the ability to run and plot test functions using this library
 matplotlib.use('Agg') # Note, this MUST be before importing pylab or matplotlib.pyplot
 from pylab import *
+from scipy.optimize import curve_fit
+
 import os
 from astropy.io import ascii
 import numpy as np
@@ -425,7 +427,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   nwalkers = 100
   #nwalkers = 10 # minimum possible number of walkers
   n_burn_in_iterations = 100
-  n_iterations = 2000
+  n_iterations = 4000
  
   print 'pos'
   poly_prior = 0.*arange(poly+1, dtype=float64)
@@ -443,6 +445,11 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
   pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+  for i in range(nwalkers):
+    #pos[i][0] = uniform(delay_prior_min,delay_prior_max)
+    u=float(i+0.5)/float(nwalkers)
+    pos[i][0] = (1.-u)*delay_prior_min + u*delay_prior_max
+  #print pos
   #pos = [[uniform(delay-100,delay+100.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
   #pos = [true_vals + [uniform(-1.e3, 1.e3), uniform(-10.,10.), uniform(0.1,10.), uniform(0.1,800.), uniform(-50.,50.)] for i in range(nwalkers)]
   #uniform([low, high, size])
@@ -730,3 +737,133 @@ def delayed_lightcurve(time_array, delay, delta_mag, redshift, tau, avg_mag, sig
     
     lc2+=delta_mag
     return lc1,lc2
+
+def gauss(x, *p):
+  A, mu, sigma = p
+  return A*np.exp(-(x-mu)**2/(2.*sigma**2))
+
+def remove_outliers(_t,_m1, _m2, _em1, _em2, display = False):
+  t_d = (_t[1:])[:-1]
+  d1 = (2.*(_m1[1:])[:-1]-_m1[:-2]-_m1[2:])/sqrt((4.*_em1[1:])[:-1]**2+_em1[:-2]**2+_em1[2:]**2)
+  d2 = (2.*(_m2[1:])[:-1]-_m2[:-2]-_m2[2:])/sqrt((4.*_em2[1:])[:-1]**2+_em2[:-2]**2+_em2[2:]**2)
+  #t_d = _t[:-1]
+  #d1 = (_m1[:-1]-_m1[1:])/sqrt(_em1[1:]**2+_em1[:-1]**2)
+  #d2 = (_m2[:-1]-_m2[1:])/sqrt(_em2[1:]**2+_em2[:-1]**2)
+  #d1 = (diff(_m1))/sqrt(_em1[1:]**2+_em1[:-1]**2)
+  #d2 = (diff(_m2))/sqrt(_em2[1:]**2+_em2[:-1]**2)
+  #d1 = (diff(_m1)/diff(_t))/sqrt(_em1[1:]**2+_em1[:-1]**2)
+  #d2 = (diff(_m2)/diff(_t))/sqrt(_em2[1:]**2+_em2[:-1]**2)
+  hist1, bin_edges1 = np.histogram(d1, bins=int(len(_t)/10.), density=False)
+  bin_centres1 = (bin_edges1[:-1] + bin_edges1[1:])/2
+  p01 = [10., 0., 1.] # p0 is the initial guess for the fitting coefficients (A, mu and sigma above)
+  coeff1, var_matrix1 = curve_fit(gauss, bin_centres1, hist1, p0=p01)
+  hist_fit1 = gauss(bin_centres1, *coeff1)
+  d_th1 = abs(coeff1[2])
+  hist2, bin_edges2 = np.histogram(d2, bins=int(len(_t)/10.), density=False)
+  bin_centres2 = (bin_edges2[:-1] + bin_edges2[1:])/2
+  p02 = [10., 0., 1.] # p0 is the initial guess for the fitting coefficients (A, mu and sigma above)
+  coeff2, var_matrix2 = curve_fit(gauss, bin_centres2, hist2, p0=p02)
+  # Get the fitted curve
+  hist_fit2 = gauss(bin_centres2, *coeff2)
+  d_th2 = abs(coeff2[2])
+
+  d_thresh1 = 3.5*d_th1
+  d_thresh2 = 3.5*d_th2
+
+  if(display==True):
+    figure(figsize=(10,12))
+    ax=subplot(321)
+    errorbar(_t,_m1,yerr=_em1, fmt='.')
+    subplot(322,sharex=ax)
+    errorbar(_t,_m2,yerr=_em2, fmt='.')
+    subplot(323, sharex=ax)
+    plot(t_d,d1, 'b.')
+    subplot(324, sharex=ax)
+    plot(t_d,d2, 'b.')
+    subplot(325)
+  # Get the fitted curve
+    plot(bin_centres1, hist1, lw=3, drawstyle='steps-mid', label='Test data')
+    plot(bin_centres1, gauss(bin_centres1,*coeff1), 'r-', lw=2)
+    print len(_t)
+    print d_th1
+    #hist(d1, bins=100)
+    subplot(326)
+    plot(bin_centres2, hist2, lw=3, drawstyle='steps-mid', label='Test data')
+    plot(bin_centres2, gauss(bin_centres2,*coeff2), 'r-', lw=2)
+    print len(_t)
+    print d_th2
+    #hist(d1, bins=100)      #hist(d2, bins=100)
+
+    ax=subplot(321)
+    plot(t_d[abs(d1)>d_thresh1],((_m1[1:])[:-1])[abs(d1)>d_thresh1], '.', color='orange')
+    subplot(322,sharex=ax)
+    plot(t_d[abs(d2)>d_thresh2],((_m2[1:])[:-1])[abs(d2)>d_thresh2], '.', color='orange')
+    subplot(323, sharex=ax)
+    plot(t_d[abs(d1)>d_thresh1],d1[abs(d1)>d_thresh1], '.', color='orange')
+    subplot(324, sharex=ax)
+    plot(t_d[abs(d2)>d_thresh2],d2[abs(d2)>d_thresh2], '.', color='orange')
+
+  # Outlier identification loop
+  outlier_indices=[]
+  for k in range(1,len(_t)-1):
+    d1_val = (2.*(_m1[k])-_m1[k-1]-_m1[k+1])/sqrt((4.*_em1[k])**2+_em1[k-1]**2+_em1[k+1]**2)
+    d2_val = (2.*(_m2[k])-_m2[k-1]-_m2[k+1])/sqrt((4.*_em2[k])**2+_em2[k-1]**2+_em2[k+1]**2)
+    d_index = k-1
+    #print d1_val, d1[d_index]
+    if(abs(d1_val)>d_thresh1 or abs(d2_val)>d_thresh2):
+      if(_t[k]-_t[k-1] < 90 and _t[k+1]-_t[k] < 90):
+	  outlier_indices.append(k)
+      #outlier_indices.append[k]
+  print outlier_indices
+  for k in outlier_indices:
+    d_index = k-1
+    if(k-1 in outlier_indices):
+      print k
+      if(abs(d1[d_index]) < abs(d1[d_index-1])):
+	outlier_indices.pop(outlier_indices.index(k))
+	
+  for k in outlier_indices:
+    d_index = k-1
+    if(k-1 in outlier_indices):
+      print k
+      if(abs(d1[d_index]) > abs(d1[d_index-1])):
+	outlier_indices.pop(outlier_indices.index(k-1))
+	
+  print outlier_indices
+  for k in outlier_indices:
+    d_index = k-1
+    if(k-1 in outlier_indices):
+      print k
+      if(abs(d2[d_index]) < abs(d2[d_index-1])):
+	outlier_indices.pop(outlier_indices.index(k))
+	
+  for k in outlier_indices:
+    d_index = k-1
+    if(k-1 in outlier_indices):
+      print k
+      if(abs(d2[d_index]) > abs(d2[d_index-1])):
+	outlier_indices.pop(outlier_indices.index(k-1))	    
+      
+  print outlier_indices
+  ax=subplot(321)
+  plot(_t[outlier_indices],_m1[outlier_indices], 'rx')
+  subplot(322,sharex=ax)
+  plot(_t[outlier_indices],_m2[outlier_indices], 'rx')
+  #subplot(323, sharex=ax)
+  #plot(t_d[abs(d1)>d_thresh1],d1[abs(d1)>d_thresh1], 'r.')
+  #subplot(324, sharex=ax)
+  #plot(t_d[abs(d2)>d_thresh2],d2[abs(d2)>d_thresh2], 'r.')
+  if(len(outlier_indices)!=0):
+    _t = np.delete(_t, outlier_indices)
+    _m1 = np.delete(_m1, outlier_indices)
+    _m2 = np.delete(_m2, outlier_indices)
+    _em1 = np.delete(_em1, outlier_indices)
+    _em2 = np.delete(_em2, outlier_indices)
+
+  if(display==True):
+    subplot(321)
+    errorbar(_t,_m1,yerr=_em1, fmt='g+')
+    subplot(322,sharex=ax)
+    errorbar(_t,_m2,yerr=_em2, fmt='g+')
+    show()
+  return _t, _m1, _m2, _em1, _em2

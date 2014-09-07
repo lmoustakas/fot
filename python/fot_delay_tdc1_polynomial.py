@@ -4,34 +4,37 @@
 ARW & LAM, JPL/Caltech
 Full Of Time
 '''
+
+
+
 if __name__ == "__main__":
     
     from fot_library import * 
     import argparse
     parser=argparse.ArgumentParser(description='fot_delay routine to calculate delay inference')
-    parser.add_argument("-i","--datafile",help="time delay challenge data file",type=str)
-    parser.add_argument("-l","--image1",help="Image 1 name (e.g. 'A')",type=str)
-    parser.add_argument("-m","--image2",help="Image 2 name (e.g. 'B')",type=str)
-    parser.add_argument("-su","--systematic",help="Additional systematic uncertainty (e.g. 0.1) [mag]",type=float)
+    parser.add_argument("-i","--datafile",	help="time delay challenge data file",type=str)
+    parser.add_argument("-l","--image1",	default='A', help="Image 1 name (e.g. 'A')",type=str)
+    parser.add_argument("-m","--image2",	default='B', help="Image 2 name (e.g. 'B')",type=str)
+    parser.add_argument("-su","--systematic",	default=0., help="Additional systematic uncertainty (e.g. 0.1) [mag]",type=float)
 
     
-    parser.add_argument("-dtp",   "--delay_prior",          help="Delay prior for emcee",type=float)
-    parser.add_argument("-dtpmin","--delay_prior_min",      help="Delay prior minimum acceptable value for emcee",type=float)
-    parser.add_argument("-dtpmax","--delay_prior_max",      help="Delay prior maximum acceptable value for emcee",type=float)
-    parser.add_argument("-dmp",   "--delta_mag_prior",      help="Difference in magniitude between images prior for emcee",type=float)
-    parser.add_argument("-dmpmin","--delta_mag_prior_min",  help="Difference in magniitude between images prior minimum acceptable value for emcee",type=float)
-    parser.add_argument("-dmpmax","--delta_mag_prior_max",  help="Difference in magniitude between images prior maximum acceptable value for emcee",type=float)
-    parser.add_argument("-sp",     "--sigma_prior",          help="Quasar light curve sigma prior for emcee",type=float)
-    parser.add_argument("-spmin",  "--sigma_prior_min",      help="Quasar light curve sigma prior minimum acceptable value for emcee",type=float)
-    parser.add_argument("-spmax",  "--sigma_prior_max",      help="Quasar light curve sigma prior maximum acceptable value for emcee",type=float)
-    parser.add_argument("-tp",     "--tau_prior",            help="Quasar light curve prior for emcee",type=float)
-    parser.add_argument("-tpmin",  "--tau_prior_min",        help="Quasar light curve prior minimum acceptable value for emcee",type=float)
-    parser.add_argument("-tpmax",  "--tau_prior_max",        help="Quasar light curve prior maximum acceptable value for emcee",type=float)
-    parser.add_argument("-mp",    "--avg_mag_prior",        help="Quasar light curve magnitude prior for emcee",type=float)
-    parser.add_argument("-mpmin", "--avg_mag_prior_min",    help="Quasar light curve magnitude prior minimum acceptable value for emcee",type=float)
-    parser.add_argument("-mpmax", "--avg_mag_prior_max",    help="Quasar light curve magnitude prior maximum acceptable value for emcee",type=float)
-    parser.add_argument("-z",      "--redshift",             help="Quasar redshift",type=float)
-    parser.add_argument("-o",      "--output_tag",           help="Output tag, in quotes",type=str)
+    parser.add_argument("-dtp",   "--delay_prior",          default = 0., help="Delay prior for emcee",type=float)
+    parser.add_argument("-dtpmin","--delay_prior_min",      default = -1600., help="Delay prior minimum acceptable value for emcee",type=float)
+    parser.add_argument("-dtpmax","--delay_prior_max",      default = +1600., help="Delay prior maximum acceptable value for emcee",type=float)
+    parser.add_argument("-dmp",   "--delta_mag_prior",      default = 0., help="Difference in magniitude between images prior for emcee",type=float)
+    parser.add_argument("-dmpmin","--delta_mag_prior_min",  default = -10., help="Difference in magniitude between images prior minimum acceptable value for emcee",type=float)
+    parser.add_argument("-dmpmax","--delta_mag_prior_max",  default = +10., help="Difference in magniitude between images prior maximum acceptable value for emcee",type=float)
+    parser.add_argument("-sp",     "--sigma_prior",         default = 1., help="Quasar light curve sigma prior for emcee",type=float)
+    parser.add_argument("-spmin",  "--sigma_prior_min",     default = 7.e-5, help="Quasar light curve sigma prior minimum acceptable value for emcee",type=float)
+    parser.add_argument("-spmax",  "--sigma_prior_max",     default = 7.e1, help="Quasar light curve sigma prior maximum acceptable value for emcee",type=float)
+    parser.add_argument("-tp",     "--tau_prior",           default = 3500., help="Quasar light curve prior for emcee",type=float)
+    parser.add_argument("-tpmin",  "--tau_prior_min",       default = 10., help="Quasar light curve prior minimum acceptable value for emcee",type=float)
+    parser.add_argument("-tpmax",  "--tau_prior_max",       default = 1.e5, help="Quasar light curve prior maximum acceptable value for emcee",type=float)
+    parser.add_argument("-mp",    "--avg_mag_prior",        default = -13., help="Quasar light curve magnitude prior for emcee",type=float)
+    parser.add_argument("-mpmin", "--avg_mag_prior_min",    default = -30., help="Quasar light curve magnitude prior minimum acceptable value for emcee",type=float)
+    parser.add_argument("-mpmax", "--avg_mag_prior_max",    default = 100., help="Quasar light curve magnitude prior maximum acceptable value for emcee",type=float)
+    parser.add_argument("-z",      "--redshift",            default = 0., help="Quasar redshift",type=float)
+    parser.add_argument("-o",      "--output_tag",          default = 'tmp', help="Output tag, in quotes",type=str)
     
     #KLUDGE TO GET ARGPARSE TO READ NEGATIVE VALUES
     for i, arg in enumerate(sys.argv):
@@ -62,6 +65,7 @@ if __name__ == "__main__":
     ef1=data['col3']
     f2=data['col4']
     ef2=data['col5']
+       
     t=[]
     m1=[]
     m2=[]
@@ -79,6 +83,10 @@ if __name__ == "__main__":
     m2=array(m2)
     em1=array(em1)
     em2=array(em2)
+    em1 = np.add(em1,args.systematic)
+    em2 = np.add(em2,args.systematic)
+    
+    t,m1,m2,em1,em2 = remove_outliers(t,m1,m2,em1,em2, display=False)
     '''
     t = t[::20]
     m1 = m1[::20]
@@ -86,10 +94,32 @@ if __name__ == "__main__":
     em1 = em1[::20]
     em2 = em2[::20]
     '''
-    print 'number of points', len(t)
+    #N = len(t)
+    #N_sub = int(0.05*N)
+    #print 'number of points', N
+    #print 'subsample number of points', N_sub
+    '''
+    from numpy.random import randint
+    re_sample = 16
+    offset = randint(0,re_sample)
+    t   = (t[offset:])[::re_sample]
+    m1  = (m1[offset:])[::re_sample]
+    m2  = (m2[offset:])[::re_sample]
+    em1 = (em1[offset:])[::re_sample]
+    em2 = (em2[offset:])[::re_sample]
+    '''
+    #print t
+    #exit()
+    '''
+    indices = randint(0,N,N_sub)
+    t   = t[indices]
+    m1  = m1[indices]
+    m2  = m2[indices]
+    em1 = em1[indices]
+    em2 = em2[indices]
+    '''
     # run the emcee delay estimator
     #emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
-    '''
     sig1, log10_tau1 = emcee_lightcurve_estimator(t, m1, em1, args.output_tag+'_lc1', 
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
@@ -99,6 +129,7 @@ if __name__ == "__main__":
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max)
+    '''
     tau1=10.**log10_tau1
     tau2=10.**log10_tau2
     sig=0.5*(sig1+sig2)
@@ -120,5 +151,5 @@ if __name__ == "__main__":
 			  args.sigma_prior,	args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,	args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max,
-			  poly=3)
+			  poly=2)
    
