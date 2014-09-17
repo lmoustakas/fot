@@ -40,18 +40,17 @@
   We report on a flexible and extendable inference technique for
   measuring time delays between images in time-varying strong
   gravitational lenses.  Robust time delays and meaningful estimates
-  of the measurement uncertainties are necessary for time delays to be
-  used for inference on the structure and substructure properties of
+  of the measurement uncertainties are necessary for inferring the structure and substructure properties of
   the lensing objects, and to determine cosmological parameters
   including the Hubble constant.  Quasar light curves have been shown
   to be described well by damped random walk behavior. We build a
-  generative model of paired quasar light curves which are offset in
-  time and by a multiplicative value, and build an inference process
+  generative model of paired quasar light curves which are offset by a constant
+  delay and magnitude, and build an inference process
   using the emcee Markov Chain Monte Carlo engine.  With this
   framework, we explore the problem of designing an observational
   campaign that satisfies specified thresholds for a successful
-  measurement of short time delays at a particular precision level,
-  and apply it to a notional \emph{Hubble} Space Telescope
+  measurement of short time delays at a particular precision level. 
+  We apply it to a notional \emph{Hubble} Space Telescope
   lens-monitoring experiment, to determine the observing campaign
   characteristics, and the reproducible photometric measurement
   precision levels that are required to secure a greater than 90\%
@@ -136,15 +135,33 @@ with a damped random walk process, where the fluctuations have a
 characteristic amplitude and decay time that correlate with the black
 hole mass and luminosity \citep{Kelly2009a}.  We will call these the
 ``light curve structure parameters'' in the discussion that
-follows. {\bf Need to provide the direct equation here, for generating
-  light curves, and include a quick explanation of the correlation
-  with black hole mass and luminosity properties. This is going to be
-  referred back to from the Experimental Design Section, to describe
-  how the model light curves were produced, which are also shown in
-  the inset of Figure~\ref{fig:triangle}.} 
+follows. 
+The damped random walk parameters that describe a quasar light 
+curve are an average magnitude $\langle m \rangle$ , its short time variability $\sigma$, in units of mag day$^{-1/2}$
+and its relaxation time $\tau$ in days. Given a magnitude $x_i$ at time $t_i$, a point $x_{i+1}$ at time $t_{i+1}$ is given by
 \begin{equation}
-L(t)=f(\sigma,\tau,m).\label{eq:lightcurve}
-\end{equation}
+\begin{split}
+x_{i+1}&  =  \langle m \rangle  \\
+&+ e^{-(t_{i+1}-t_i)/\tau}\left(x_{i}-\langle m \rangle\right)\\
+&+ \sigma e^{-(t_{i+1}-t_i)/\tau}\int_{0}^{t_{i+1}-t_{i}}e^{s/\tau}dB(s)\\
+\end{split}
+\label{eq:generative}
+\end{equation} 
+where $dB(s)$ is a temporally uncorrelated normally distributed random variable with zero mean and variance $dt$.
+The first point $x_1$ in a randomly generated series is obtained by taking the limit of
+$t_1-t_0\to\infty$, which results in a gaussian distributed variable with mean $\langle m \rangle$ and variance $\tau\sigma^2/2$.
+The dependence of the quasar light curve parameters $\sigma$ and $\tau$ on its black hole mass according to \citep{Kelly2009a}.
+% {\bf Need to provide the direct equation here, for generating
+%   light curves, and include a quick explanation of the correlation
+%   with black hole mass and luminosity properties. This is going to be
+%   referred back to from the Experimental Design Section, to describe
+%   how the model light curves were produced, which are also shown in
+%   the inset of Figure~\ref{fig:triangle}.} 
+
+% \begin{equation}
+% L(t)=f(\sigma,\tau,m).\label{eq:lightcurve}
+% \end{equation}
+
 The behavior is likely
 driven by stochastic thermal processes in their accretion disks, but
 for our purposes what matters most is the model prescription, so we
@@ -155,23 +172,39 @@ p({\mathbf m} | {\mathbf d}) =
 {{p({\mathbf d} | {\mathbf m})p({\mathbf m})}
 \over{p({\mathbf  d})}}. \nonumber 
 \end{equation}
-We implement this in two ways; first to analyze a single time-stream
-of observations, towards estimating the structure parameters of the
-light curve; and second, to analyze combined pairs of ostensibly
-correlated light curves, to determine the combination of the structure
-parameters and the offset parameters that best join the light
-curves. The likelihood function used to reconstruct the quasar light
-curve damped random walk parameters is given by
-\citet{Kelly2009a}. Written as a
-log-likelihood,
-\begin{align} 
-& \log\mathcal{L}_{K}(\langle m\rangle, \sigma,\tau | X) =\nonumber \\
-& \ \ \ \ \ \ \ \ -\frac{1}{2}\sum_{i=1}^{n}\left\{
+where the data observables {\bf d} are a collection of observed magnitudes ${x_{i}}$ with 
+photometric uncertainties $\sigma_i$ at times ${t_i}$. We denote the set of data values by $X=\{(t_i,x_i,\sigma_i)\}$. The model parameters {\bf m} are 
+the quasar parameters ($\langle m~\rangle$,~$\sigma$,~$\tau$). The probability distribution 
+$p({\mathbf d} | {\mathbf m})$ corresponding to the light curve model given by Equation~\ref{eqn:generative}, 
+given by \citet{Kelly2009a}, is 
+\begin{equation} 
+p(X|\langle m\rangle, \sigma,\tau) =
+\prod_{i=1}^{n}
+\frac{
+\exp\left(-\frac{1}{2}\left\{
 \frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
 + 
-\log\left[2\pi\left(\Omega_i+\sigma_i^2\right)\right]
-\right\}, 
-\end{align}
+\right\}
+\right)
+}
+{
+\sqrt{2\pi\left(\Omega_i+\sigma_i^2\right)}
+}
+\end{equation}
+% \begin{align} 
+% & p(\{x_i\}, \{t_i\}, \{\sigma_i\}|\langle m\rangle, \sigma,\tau) =\nonumber \\
+% & \ \ \ \ \ \ \ \ \prod_{i=1}^{n}
+% \frac{
+% \exp\left(-\frac{1}{2}\left\{
+% \frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
+% + 
+% \right\}
+% \right)
+% }
+% {
+% \sqrt{2\pi\left(\Omega_i+\sigma_i^2\right)}
+% }
+% \end{align}
 where 
 % \begin{equation}
 \begin{alignat}{1}
@@ -185,17 +218,50 @@ a_{i}^2\Omega_{i-1}\left(1-\frac{\Omega_{i-1}}{\Omega_{i-1}+\sigma_{i-1}^2}\righ
 & a_i = e^{-\left(t_i-t_{i-1}\right)/\tau}. \nonumber
 % & a_i = \exp\left(\frac{t_i-t_{i-1}}{\tau}\right) \\
 \end{alignat}
+The prior distribution of model values $p(\mathbf{m})$ is determined by the extent of exisiting measurements or theory while the probability distribution of the data $p(\mathbf{d})$ is treated as a normalization factor.
+
+We implement the Bayesian inference approach in two ways; first to analyze a single time-stream
+of observations, towards estimating the structure parameters of the
+light curve; and second, to analyze combined pairs of ostensibly
+correlated light curves, to determine the combination of the structure
+parameters and the offset parameters that best join the light
+curves. The likelihood function used to reconstruct the quasar light
+curve damped random walk parameters is
+\begin{align} 
+& \log\mathcal{L}_{K}(\langle m\rangle, \sigma,\tau | X) =\nonumber \\
+& \ \ \ \ \ \ \ \ -\frac{1}{2}\sum_{i=1}^{n}\left\{
+\frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
++ 
+\log\left[2\pi\left(\Omega_i+\sigma_i^2\right)\right]
+\right\}. 
+\end{align}
+% where 
+% % \begin{equation}
+% \begin{alignat}{1}
+% & x_{i}^{*} = x_i-\langle m \rangle \nonumber\\
+% & \hat{x}_0 = 0   \nonumber\\
+% & \Omega_{0}=\frac{\tau\sigma^2}{2} \nonumber\\
+% & \hat{x}_i = a_i\hat{x}_{i-1} + \frac{a_i\Omega_{i-1}}{\Omega_{i-1}+\sigma^2_{i-1}} \left(x^{*}_{i-1}-\hat{x}_{i-1}\right) \nonumber\\
+% & \Omega_{i}=\Omega_{0}\left(1-a_{i}^2\right) +
+% a_{i}^2\Omega_{i-1}\left(1-\frac{\Omega_{i-1}}{\Omega_{i-1}+\sigma_{i-1}^2}\right),
+% {\rm and} \nonumber\\
+% & a_i = e^{-\left(t_i-t_{i-1}\right)/\tau}. \nonumber
+% % & a_i = \exp\left(\frac{t_i-t_{i-1}}{\tau}\right) \\
+% \end{alignat}
+
 The offset light curves of two images of a single intrinsic quasar's 
 light curve are merged according to a hypothesized delay and magnitude
-(or multiplicative-flux) offset. A posterior probability is then
-calculated for the merged light curve under different hypotheses for
-the parameters, by $\langle m\rangle$, $\tau$, and $\sigma$.
+(or multiplicative-flux) offset. In other words, given a set of light curves
+$X_1 = \{(t_{1,i},x_{1,i},\sigma_{1,i})\}$ and $X_2 = \{(t_{2,i},x_{2,i},\sigma_{2,i})\}$  
+we map the points in $X_2$ to $X'_2 = \{(t_{2,i}-\Delta t,x_{2,i}-\Delta m,\sigma_{2,i})\}$  
+such that the merged data $X_1$ and $X'_2$, denoted by $M(\Delta t, \Delta m ; X_1, X_2)$ is best described by a single light curve model.
+The likelihood for the merged lightcurves under a hypothesis $(\Delta t, \Delta m)$ and ($\langle m\rangle$, $\tau$, and $\sigma$) is given by
 \begin{align}
 & \mathcal L (\Delta t, \Delta m, \sigma, \tau, \langle m \rangle | X_1, X_2)  = \nonumber \\
 & \mathcal{L}_{K} \left( \sigma, \tau, \langle m \rangle  | M(\Delta
   t,\Delta m ; X_1, X_2) \right). 
 \end{align}
-The posterior probability is given by
+with a posterior probability is given by
 \begin{align}
 & p(X_1, X_2 | \Delta t, \Delta m, \langle m \rangle, \sigma,\tau) \propto \nonumber \\
 &  \ \ \ \ \ \ \mathcal{L}(\Delta t, \Delta m, \langle m \rangle,
@@ -217,10 +283,10 @@ triangle plotting algorithm of CITATIONHERE. In
 Figure~\ref{fig:example} we show a sample generated pair of light
 curves drawn for the same intrinsic quasar light curve properties,
 with a time delay of 1.5 day and a magnitude offset of
-0.3~magnitudes. {\bf Are these values correct for this example?}.  The
+0.3~magnitudes.  The
 triangle-plot shows the posterior likelihood distributions for the
 light curve structure parameters ($\sigma$, $\tau$), and the delay
-parameters (delay, $\Delta m$, $\langle m\rangle$), including their
+parameters ($\Delta t$, $\Delta m$, $\langle m\rangle$), including their
 marginalized distributions. 
 
 \begin{figure}[t]
@@ -269,22 +335,22 @@ results by requiring that a reconstructed delay be within 3$\sigma$ of
 the true delay. We also require that the uncertainty in the delay be
 within 3$\sigma$ to reject poor reconstructions.
 
-\begin{table}[htdp]
-\caption{Table of observational parameters.}
-\begin{center}
-\begin{tabular}{lll}
-\hline
-thing & data & description \\
-\hline
-\hline
-stuff & numbers & things \\
-stuff & numbers & things \\
-stuff & numbers & things \\
-\hline
-\end{tabular}
-\end{center}
-\label{tab:example}
-\end{table}
+% \begin{table}[htdp]
+% \caption{Table of observational parameters.}
+% \begin{center}
+% \begin{tabular}{lll}
+% \hline
+% thing & data & description \\
+% \hline
+% \hline
+% stuff & numbers & things \\
+% stuff & numbers & things \\
+% stuff & numbers & things \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \label{tab:example}
+% \end{table}
 
 In nature, one set of observations may accurately represent our
 statistical description of a process, but that set may or may not in
@@ -357,8 +423,8 @@ check, we can analyze each image's timestream separately as well as
 jointly, and compare derived values for the light curve structure
 parameters. We have also implicitly assumed that the photometric
 measurement uncertainties are uncorrelated, which may not be the case
-for e.g.\ deconvolved ground-based observations. It is straightforward
-to incorporate such covariances in our analysis, however. 
+for e.g.\ deconvolved ground-based observations. However, it is straightforward
+to incorporate such covariances in our analysis. 
 
 The setup in the Section~\ref{sec:experiment}, by concentrating on a
 relatively short intrinsic time delay, largely avoids the effect that
@@ -382,6 +448,9 @@ performance. A new ``grander'' time delay challenge is being
 discussed, with a focus on achieving absolute precision time delay
 measurements that are more on the order of the experimental setup of
 Section~\ref{sec:experiment}. 
+
+{\bf Final paragraphs should end with a short discussion of future plans, e.g. OMEGA,
+testing the damped random walk model at short time scales with Kepler, etc.}
 
 \acknowledgements
 

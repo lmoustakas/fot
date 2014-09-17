@@ -445,10 +445,9 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   
   #print 'np.random.randn(ndim)',np.random.randn(ndim)
   pos = [prior_vals + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
-  for i in range(nwalkers):
-    #pos[i][0] = uniform(delay_prior_min,delay_prior_max)
-    u=float(i+0.5)/float(nwalkers)
-    pos[i][0] = (1.-u)*delay_prior_min + u*delay_prior_max
+  #for i in range(nwalkers):
+    #u=float(i+0.5)/float(nwalkers)
+    #pos[i][0] = (1.-u)*delay_prior_min + u*delay_prior_max
   #print pos
   #pos = [[uniform(delay-100,delay+100.),uniform(delta_mag-1.,delta_mag+1.), uniform(0.,sigma*10.), uniform(tau*0.1, tau*10.), uniform(avg_mag-0.2+avg_mag-0.2)] for i in range(nwalkers)]
   #pos = [true_vals + [uniform(-1.e3, 1.e3), uniform(-10.,10.), uniform(0.1,10.), uniform(0.1,800.), uniform(-50.,50.)] for i in range(nwalkers)]

@@ -120,6 +120,7 @@ if __name__ == "__main__":
     '''
     # run the emcee delay estimator
     #emcee_delay_estimator(time, m[mag1],me[magerr1],m[mag2],me[magerr2],args.outputtag)
+    '''
     sig1, log10_tau1 = emcee_lightcurve_estimator(t, m1, em1, args.output_tag+'_lc1', 
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
@@ -129,6 +130,7 @@ if __name__ == "__main__":
 			  args.sigma_prior,    args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,      args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max)
+    '''
     '''
     tau1=10.**log10_tau1
     tau2=10.**log10_tau2
@@ -151,5 +153,5 @@ if __name__ == "__main__":
 			  args.sigma_prior,	args.sigma_prior_min,    args.sigma_prior_max, 
 			  args.tau_prior,	args.tau_prior_min,      args.tau_prior_max, 
 			  args.avg_mag_prior,   args.avg_mag_prior_min,   args.avg_mag_prior_max,
-			  poly=2)
+			  poly=3)
    

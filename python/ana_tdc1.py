@@ -88,22 +88,24 @@ if __name__ == "__main__":
     #print args
     
 
-fnm_lc1 = max(glob.iglob('%s_lc1*.npz'%(args.file_base_name)), key=os.path.getctime)
-fnm_lc2 = max(glob.iglob('%s_lc2*.npz'%(args.file_base_name)), key=os.path.getctime)
-fnm_dt = max(glob.iglob('%s_dt*.npz'%(args.file_base_name)), key=os.path.getctime)
-
+#fnm_lc1 = max(glob.iglob('%s_lc1*.npz'%(args.file_base_name)), key=os.path.getctime)
+#fnm_lc2 = max(glob.iglob('%s_lc2*.npz'%(args.file_base_name)), key=os.path.getctime)
+print args.file_base_name
+#print glob.iglob('%s_dt*.npz'%(args.file_base_name))
+#fnm_dt = max(glob.iglob('%s_dt*.npz'%(args.file_base_name)), key=os.path.getctime)
+fnm_dt = '../outputs/chain_samples_tdc1_rung0_double_pair182_dt_2014_08_17_21:58.npz'
 #print fnm_lc1
 #print fnm_lc2
 #print fnm_dt
 
-chain_lc1 = get_chain(fnm_lc1)
-chain_lc2 = get_chain(fnm_lc2)
+#chain_lc1 = get_chain(fnm_lc1)
+#chain_lc2 = get_chain(fnm_lc2)
 chain_dt = get_chain(fnm_dt)
 
 
 ndim, nwalkers, niterations, niteration_cut = [8,100,4000,2000] # these should be set in the command line
 if(args.display>1): plot_chain_iterations(chain_dt, ndim, nwalkers, niterations, niteration_cut)
-
+show()
 delay_lower, delay_upper, delay = get_conf_interval(chain_dt, 0, nwalkers, niterations, niteration_cut)
 delay_lower_95, delay_upper_95, delay_95 = get_conf_interval(chain_dt, 0, nwalkers, niterations, niteration_cut, conf_interval=0.95)
 delay_lower_98, delay_upper_98, delay_98 = get_conf_interval(chain_dt, 0, nwalkers, niterations, niteration_cut, conf_interval=0.98)
