@@ -147,7 +147,9 @@ x_{i+1}&  =  \langle m \rangle  \\
 \end{split}
 \label{eq:generative}
 \end{equation} 
-where $dB(s)$ is a temporally uncorrelated normally distributed random variable with zero mean and variance $dt$.
+where $dB(s)$ is a temporally uncorrelated normally distributed random variable with zero mean and variance $dt$. The integral over
+the Gaussian distributed random numbers $dB(s)$ is the ``random walk" part of the model while the exponential with constant $\tau$ provides
+the ``dampening".
 The first point $x_1$ in a randomly generated series is obtained by taking the limit of
 $t_1-t_0\to\infty$, which results in a gaussian distributed variable with mean $\langle m \rangle$ and variance $\tau\sigma^2/2$.
 The dependence of the quasar light curve parameters $\sigma$ and $\tau$ on its black hole mass according to \citep{Kelly2009a}.
@@ -172,19 +174,19 @@ p({\mathbf m} | {\mathbf d}) =
 {{p({\mathbf d} | {\mathbf m})p({\mathbf m})}
 \over{p({\mathbf  d})}}. \nonumber 
 \end{equation}
-where the data observables {\bf d} are a collection of observed magnitudes ${x_{i}}$ with 
+In our application {\bf d} is a collection of observed magnitudes ${x_{i}}$ with 
 photometric uncertainties $\sigma_i$ at times ${t_i}$. We denote the set of data values by $X=\{(t_i,x_i,\sigma_i)\}$. The model parameters {\bf m} are 
 the quasar parameters ($\langle m~\rangle$,~$\sigma$,~$\tau$). The probability distribution 
 $p({\mathbf d} | {\mathbf m})$ corresponding to the light curve model given by Equation~\ref{eqn:generative}, 
-given by \citet{Kelly2009a}, is 
+% given by \citet{Kelly2009a}, 
+is 
 \begin{equation} 
 p(X|\langle m\rangle, \sigma,\tau) =
 \prod_{i=1}^{n}
 \frac{
-\exp\left(-\frac{1}{2}\left\{
+\exp\left(-\frac{1}{2}%\left\{
 \frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
-+ 
-\right\}
+% \right\}
 \right)
 }
 {
@@ -252,10 +254,11 @@ curve damped random walk parameters is
 The offset light curves of two images of a single intrinsic quasar's 
 light curve are merged according to a hypothesized delay and magnitude
 (or multiplicative-flux) offset. In other words, given a set of light curves
-$X_1 = \{(t_{1,i},x_{1,i},\sigma_{1,i})\}$ and $X_2 = \{(t_{2,i},x_{2,i},\sigma_{2,i})\}$  
-we map the points in $X_2$ to $X'_2 = \{(t_{2,i}-\Delta t,x_{2,i}-\Delta m,\sigma_{2,i})\}$  
-such that the merged data $X_1$ and $X'_2$, denoted by $M(\Delta t, \Delta m ; X_1, X_2)$ is best described by a single light curve model.
-The likelihood for the merged lightcurves under a hypothesis $(\Delta t, \Delta m)$ and ($\langle m\rangle$, $\tau$, and $\sigma$) is given by
+$X_1 = \{(t_{i},x_{1,i},\sigma_{1,i})\}$ and $X_2 = \{(t_{i},x_{2,i},\sigma_{2,i})\}$, , observed with the same time sample $t_i$,  
+we map the points in $X_2$ to $X'_2 = \{(t_{i}-\Delta t,x_{2,i}-\Delta m,\sigma_{2,i})\}$  
+such that the merged data $X_1$ and $X'_2$, denoted by $M(\Delta t, \Delta m ; X_1, X_2)$ is best described 
+by a single light curve model. The likelihood for the merged lightcurves under a 
+hypothesis $(\Delta t, \Delta m)$ and ($\langle m\rangle$, $\tau$, and $\sigma$) is given by
 \begin{align}
 & \mathcal L (\Delta t, \Delta m, \sigma, \tau, \langle m \rangle | X_1, X_2)  = \nonumber \\
 & \mathcal{L}_{K} \left( \sigma, \tau, \langle m \rangle  | M(\Delta
@@ -280,19 +283,22 @@ Chain Monte Carlo (MCMC) algorithm to explore the likelihood space of
 the model parameters, based on specified observational parameters. We
 use the emcee algorithm of \citet{Foreman-Mackey2013a}, and the
 triangle plotting algorithm of CITATIONHERE. In
-Figure~\ref{fig:example} we show a sample generated pair of light
+Figure~\ref{fig:triangle} we show a sample generated pair of light
 curves drawn for the same intrinsic quasar light curve properties,
-with a time delay of 1.5 day and a magnitude offset of
-0.3~magnitudes.  The
-triangle-plot shows the posterior likelihood distributions for the
-light curve structure parameters ($\sigma$, $\tau$), and the delay
-parameters ($\Delta t$, $\Delta m$, $\langle m\rangle$), including their
+with a time delay of $\Delta t$=1.5~day and a magnitude offset of
+$\Delta m$=0.3~magnitudes. The input quasar light curve parameters are 
+consistent with a black hole mass and luminosity of RX~J1131-1231.
+The triangle-plot shows the posterior likelihood distributions the delay
+parameters ($\Delta t$, $\Delta m$) and the light curve structure parameters 
+($\langle m\rangle$, $\sigma$, $\tau$), including their
 marginalized distributions. 
+
 
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=\linewidth]{./triangle_example.pdf}
-\caption{Markov Chain Monte Carlo (MCMC) results for an example for
+\caption{{\bf change arb. u. to mag, also, flip order of y-axis} 
+  Markov Chain Monte Carlo (MCMC) results for an example for
   the parameter reconstruction of a light curve and its delayed and
   magnitude offset image. The quasar light curve parameters $\tau$,
   $\sigma$ and $\langle m \rangle$ are estimated under a hypothesis
@@ -300,7 +306,10 @@ marginalized distributions.
   light curve (blue) and its delayed magnitude offset image (red) are
   shown with the image delay and magnitude offset corrected from the
   most probable values of the delay and $\Delta m$
-  distributions.}\label{fig:triangle}
+  distributions. The quasar light curve parameters are 
+  $\langle m \rangle$=19.0~magnitudes, $\sigma$=0.07 mag $day^{-1/2}$
+  and $\tau$=121~days. In this example, the observations were modeled
+  with a photometric uncertainy of 0.02~magnitudes.}\label{fig:triangle}
 \end{center}
 \end{figure}
 
@@ -319,21 +328,39 @@ to at least $\sim1\%$.  For the purposes of this setup, we adopt the
 $HST$ ``orbit'' as a natural unit of time, which equals
 $\sim90$\,minutes.
 
-{\bf Please update this paragraph to the most final (and ideally the
-  simplest) approach that we ended up taking. The fewer ``post''
-  processing magical steps we have as part of the process, the better.
-  We can also give some of the technical details on the numbers of
-  walkers, and the burn-in approach that we took, that would be fine.
-  We may also give a sense of how long things took to run on our
-  particular machine, if that would seem useful.}  The cuts required
-by for a valid reconstruction are described as follows. We fit a
-Gaussian curve to the distribution of 100 simulation delay results. We
-have found that the python SciPy curve\_fit method, which employs the
+% {\bf Please update this paragraph to the most final (and ideally the
+%   simplest) approach that we ended up taking. The fewer ``post''
+% %   processing magical steps we have as part of the process, the better.
+%   We can also give some of the technical details on the numbers of
+%   walkers, and the burn-in approach that we took, that would be fine.
+%   We may also give a sense of how long things took to run on our
+%   particular machine, if that would seem useful.}  
+
+In nature, one set of observations may accurately represent our
+statistical description of a process, but that set may or may not in
+itself contain enough information to allow a clear inference of the
+details of the underlying process. To test the efficacy of a planned
+experimental design, so we can confidently forecast the probability of
+success, an understanding of the likely nature of outlier
+measurements, and the performance as a function of the specific
+target values for each observational constraint, we generate a large
+set of simulated observations drawn from the same observational
+characteristics, and do the full inference analysis on each of these.
+The results from such a Monte Carlo exploration of an experimental
+setup are shown in Figure~\ref{fig:example}, for the set of
+observational choices shown in the same Figure. 
+
+The cuts required by for a valid reconstruction are described as follows. 
+We fit a Gaussian curve to the distribution of 100 simulation delay results (see Figure~\ref{fig:example}). 
+We have found that the python SciPy curve\_fit method, which employs the
 Levenberg-Marquardt algorithm, is not driven by outliers. The standard
 deviation $\sigma$ from the fit is used to reject reconstruction
 results by requiring that a reconstructed delay be within 3$\sigma$ of
-the true delay. We also require that the uncertainty in the delay be
-within 3$\sigma$ to reject poor reconstructions.
+the true delay. We also require that the uncertainty in the delay, 
+obtained from the posterior distribution of the MCMC process (see the top left 
+panel of Figure~\ref{fig:triangle} for an example), to be
+within 3$\sigma$ to reject poor reconstructions. We define the success as the 
+fraction of light curve delay reconstructions surviving these cuts.
 
 % \begin{table}[htdp]
 % \caption{Table of observational parameters.}
@@ -352,19 +379,7 @@ within 3$\sigma$ to reject poor reconstructions.
 % \label{tab:example}
 % \end{table}
 
-In nature, one set of observations may accurately represent our
-statistical description of a process, but that set may or may not in
-itself contain enough information to allow a clear inference of the
-details of the underlying process. To test the efficacy of a planned
-experimental design, so we can confidently forecast the probability of
-success, an understanding of the likely nature of outlier
-measurements, and the performance as a function of the specific
-target values for each observational constraint, we generate a large
-set of simulated observations drawn from the same observational
-characteristics, and do the full inference analysis on each of these.
-The results from such a Monte Carlo exploration of an experimental
-setup are shown in Figure~\ref{fig:example}, for the set of
-observational choices given in Table~\ref{tab:example}. 
+
 
 % \begin{figure}[t]
 % \begin{center}
@@ -426,7 +441,7 @@ measurement uncertainties are uncorrelated, which may not be the case
 for e.g.\ deconvolved ground-based observations. However, it is straightforward
 to incorporate such covariances in our analysis. 
 
-The setup in the Section~\ref{sec:experiment}, by concentrating on a
+The setup in Section~\ref{sec:experiment}, by concentrating on a
 relatively short intrinsic time delay, largely avoids the effect that
 stochastic microlensing variations in one or both of the images would
 have. This is a variational component that can be included with
