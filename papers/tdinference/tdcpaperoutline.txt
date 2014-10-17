@@ -1,0 +1,47 @@
+FOT paper outline
+
+1. Introduction
+
+Motivation for measuring time delays, for H0, cosmography and dark
+matter.  
+
+Quasar physics that drives their light curve fluctuations, and the
+damped random walk model. 
+
+
+
+========
+
+1. Introduction
+1.1 Introducing 1131
+1.2 Bayesian Framework
+
+2. Simulating light curves
+2.1 Quasar physics
+2.2 Observing cadences and campaigns
+2.3 Photometric uncertainties
+
+3. Measuring time delays
+
+4. Running the experiment
+o Table of truth
+o Table of measurement
+
+5. Discussion and conclusions
+
+
+
+Gravitational lensing
+
+Time delays and Hubble's constant
+ Refsdal
+ Oguri
+ Suyu
+
+Time delays and substructure
+ KM09
+
+Objects of interest
+ Two and four image time-varying lenses
+ A specific lens as a testbed
+
