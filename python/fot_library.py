@@ -14,7 +14,7 @@ Let us set the environment variable FOTDIR to the local location of the reposito
 '''
 import matplotlib
 # comented line below because it interferes with the ability to run and plot test functions using this library
-matplotlib.use('Agg') # Note, this MUST be before importing pylab or matplotlib.pyplot
+#matplotlib.use('Agg') # Note, this MUST be before importing pylab or matplotlib.pyplot
 from pylab import *
 from scipy.optimize import curve_fit
 

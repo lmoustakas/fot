@@ -177,7 +177,7 @@ p({\mathbf m} | {\mathbf d}) =
 In our application {\bf d} is a collection of observed magnitudes ${x_{i}}$ with 
 photometric uncertainties $\sigma_i$ at times ${t_i}$. We denote the set of data values by $X=\{(t_i,x_i,\sigma_i)\}$. The model parameters {\bf m} are 
 the quasar parameters ($\langle m~\rangle$,~$\sigma$,~$\tau$). The probability distribution 
-$p({\mathbf d} | {\mathbf m})$ corresponding to the light curve model given by Equation~\ref{eqn:generative}, 
+$p({\mathbf d} | {\mathbf m})$ corresponding to the light curve model given by Equation~\ref{eq:generative}, 
 % given by \citet{Kelly2009a}, 
 is 
 \begin{equation} 
@@ -230,7 +230,7 @@ parameters and the offset parameters that best join the light
 curves. The likelihood function used to reconstruct the quasar light
 curve damped random walk parameters is
 \begin{align} 
-& \log\mathcal{L}_{K}(\langle m\rangle, \sigma,\tau | X) =\nonumber \\
+& \log\mathcal{L}_{K}(X | \langle m\rangle, \sigma,\tau) =\nonumber \\
 & \ \ \ \ \ \ \ \ -\frac{1}{2}\sum_{i=1}^{n}\left\{
 \frac{\left(\hat{x}_i-x^{*}_i\right)^2}{\Omega_i+\sigma_i^2} 
 + 
@@ -254,21 +254,21 @@ curve damped random walk parameters is
 The offset light curves of two images of a single intrinsic quasar's 
 light curve are merged according to a hypothesized delay and magnitude
 (or multiplicative-flux) offset. In other words, given a set of light curves
-$X_1 = \{(t_{i},x_{1,i},\sigma_{1,i})\}$ and $X_2 = \{(t_{i},x_{2,i},\sigma_{2,i})\}$, , observed with the same time sample $t_i$,  
+$X_1 = \{(t_{i},x_{1,i},\sigma_{1,i})\}$ and $X_2 = \{(t_{i},x_{2,i},\sigma_{2,i})\}$, observed with the same time sample $t_i$,  
 we map the points in $X_2$ to $X'_2 = \{(t_{i}-\Delta t,x_{2,i}-\Delta m,\sigma_{2,i})\}$  
 such that the merged data $X_1$ and $X'_2$, denoted by $M(\Delta t, \Delta m ; X_1, X_2)$ is best described 
 by a single light curve model. The likelihood for the merged lightcurves under a 
 hypothesis $(\Delta t, \Delta m)$ and ($\langle m\rangle$, $\tau$, and $\sigma$) is given by
 \begin{align}
-& \mathcal L (\Delta t, \Delta m, \sigma, \tau, \langle m \rangle | X_1, X_2)  = \nonumber \\
-& \mathcal{L}_{K} \left( \sigma, \tau, \langle m \rangle  | M(\Delta
-  t,\Delta m ; X_1, X_2) \right). 
+& \mathcal L (X_1, X_2 | \Delta t, \Delta m, \sigma, \tau, \langle m \rangle)  = \nonumber \\
+& \mathcal{L}_{K} \left( M(\Delta
+  t,\Delta m ; X_1, X_2) | \sigma, \tau, \langle m \rangle \right). 
 \end{align}
 with a posterior probability is given by
 \begin{align}
-& p(X_1, X_2 | \Delta t, \Delta m, \langle m \rangle, \sigma,\tau) \propto \nonumber \\
-&  \ \ \ \ \ \ \mathcal{L}(\Delta t, \Delta m, \langle m \rangle,
-\sigma,\tau | X_1, X_2)\ \times\nonumber\\
+& p(\Delta t, \Delta m, \langle m \rangle, \sigma,\tau | X_1, X_2) \propto \nonumber \\
+&  \ \ \ \ \ \ \mathcal{L}(X_1, X_2 | \Delta t, \Delta m, \langle m \rangle,
+\sigma,\tau)\ \times\nonumber\\
 &  \ \ \ \ \ \   p(\Delta t, \Delta m, \langle m \rangle,
 \sigma,\tau). 
 \end{align}
