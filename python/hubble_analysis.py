@@ -80,16 +80,21 @@ def single_obs_view(fnm,chain_fnm):
 
 	filtered_samples = samples[mod(array_index,1000)>200]
 	#fig= triangle.corner(samples[:,[0,4,1,2,3]], labels=["delay", "avg_mag", "$\Delta$mag", "$\sigma$", r"$\tau$"])
-	fig= triangle.corner(filtered_samples[:,[0,1,4,2,3]], labels=["delay", "$\Delta$m", r"$\langle m \rangle$", "$\sigma$", r"$\tau$"])
+	fig= triangle.corner(filtered_samples[:,[0,1,4,2,3]], labels=["delay", "$\Delta$m", r"$\langle m \rangle$", "$\sigma$", r"$log_{10}(\tau)$"], truths=[1.5, 0.3, 19., 0.07, log10(121.)], truth_color='red')
 
 	a1 = axes([.55, .83, .4, .14], axisbg='none')
 	errorbar(time_array, mag1_dat,fmt='b+', yerr=0.02*ones(len(time_array)), mec='b', ms=3)
 	errorbar(time_array, mag2_dat ,fmt='rx', yerr=0.02*ones(len(time_array)), mec='r', ms=3 )
 	title('Light Curves')
 	#xlabel('time, days')
-	ylabel('Magnitude, arb. u.')
+	ylabel('Magnitude')
 	a1.set_xticklabels('')
-	setp(a1, yticks=arange(18.8,19.5,0.2))
+	mini = min( float(int(min(mag1_dat/0.1)))*0.1, float(int(min(mag2_dat/0.1)))*0.1) 
+	maxi = max( float(int(max(mag1_dat/0.1)))*0.1, float(int(max(mag2_dat/0.1)))*0.1)
+	print 'mini, max', mini,maxi
+	setp(a1, yticks=arange(mini,maxi+0.11, 0.2))
+	ylim(maxi+0.1,mini-0.1)
+
 	a2 = axes([.55, .65, .4, .14], axisbg='none')
 	dt = x_dt[argmax(p_dt)]
 	dm = x_dm[argmax(p_dm)]
@@ -98,8 +103,13 @@ def single_obs_view(fnm,chain_fnm):
 	legend(loc=1)
 	#title('Light Curves')
 	xlabel('time, days')
-	ylabel('Magnitude, arb. u.')
-	setp(a2, yticks=arange(18.8,19.21,0.1))
+	ylabel('Magnitude')
+	mini = min( float(int(min(mag1_dat/0.1)))*0.1, float(int(min((mag2_dat-dm)/0.1)))*0.1 )  
+	maxi = max( float(int(max(mag1_dat/0.1)))*0.1, float(int(max((mag2_dat-dm)/0.1)))*0.1 )  
+	#mini = min( float(int(min(mag1_dat/0.2)))*0.2, float(int(min(mag2_dat/0.2)))*0.2) 
+	#maxi = max( float(int(max(mag1_dat/0.2)))*0.2, float(int(max(mag2_dat/0.2)))*0.2)
+	setp(a2, yticks=arange(mini ,maxi+0.11, 0.1))
+	ylim(maxi+0.1,mini-0.05)
 	show()
 	exit()
 
@@ -255,12 +265,15 @@ def ll_plot():
 
 #dir1 = '/data2/fot_archived_outputs_and_logs/logs/2014_04_15_hubble_sim_runs/'
 
-fnm	  = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/sim_data_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21.npz'
-chain_fnm = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/chain_samples_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21_2014_04_16_23:21.npz'
+#fnm	  = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/sim_data_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21.npz'
+#chain_fnm = '/data2/fot_archived_outputs_and_logs/outputs/2014_04_15_hubble_sim_runs/chain_samples_hubble_sim_90_orbits_0p02_pu_r97_2014_04_16_23:21_2014_04_16_23:21.npz'
 
-#single_obs_view(fnm,chain_fnm)
+fnm	  = '/home/afromero/dark_matter/fot/outputs/sim_data_test_2014_11_17_16:42.npz'
+chain_fnm = '/home/afromero/dark_matter/fot/outputs/chain_samples_test_2014_11_17_16:42.npz'
 
-ll_plot()
+single_obs_view(fnm,chain_fnm)
+
+#ll_plot()
 #ll_plot2()
 exit()
 
