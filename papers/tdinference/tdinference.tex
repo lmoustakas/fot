@@ -38,82 +38,81 @@
 
 \begin{abstract}
   We report on a flexible and extendable inference technique for
-  measuring time delays between images in time-varying strong
-  gravitational lenses.  Robust time delays and meaningful estimates
-  of the measurement uncertainties are necessary for inferring the structure and substructure properties of
-  the lensing objects, and to determine cosmological parameters
-  including the Hubble constant.  Quasar light curves have been shown
-  to be described well by damped random walk behavior. We build a
-  generative model of paired quasar light curves which are offset by a constant
-  delay and magnitude, and build an inference process
-  using the emcee Markov Chain Monte Carlo engine.  With this
-  framework, we explore the problem of designing an observational
-  campaign that satisfies specified thresholds for a successful
-  measurement of short time delays at a particular precision level. 
-  We apply it to a notional \emph{Hubble} Space Telescope
+  measuring the time delays between images in time-varying strong
+  gravitational lenses, and for optimizing observational parameters to
+  achieve a target time delay precision.  Robust time delays and
+  meaningful estimates of the corresponding uncertainties are
+  essential for using such time delays for several astrophysical
+  applications, including estimating the Hubble constant, other
+  cosmological parameters, or for constraining lens-galaxy structure
+  or substructure properties. Quasar's optical light curves have been
+  shown to be described well by a damped random walk behavior. We build
+  a generative model of paired quasar light curves which are offset by
+  a constant delay and magnitude, and build an inference process using
+  the emcee Markov Chain Monte Carlo engine.  With this framework, we
+  explore the problem of designing observational campaigns that will
+  achieve time delay measurements at a specific threshold level.  We
+  apply this approach to a notional \emph{Hubble} Space Telescope
   lens-monitoring experiment, to determine the observing campaign
-  characteristics, and the reproducible photometric measurement
-  precision levels that are required to secure a greater than 90\%
-  probability of measuring a 1.5-day time delay to a combined random
-  and systematic precision of better than one hour.  We discuss the
-  extensibility of this approach to other experimental designs.
+  characteristics and photometric sensitivity that are required to
+  secure a greater than 90\% probability of measuring a 1.5-day time
+  delay to a combined random and systematic precision of better than
+  one hour.  We discuss the extensibility of this approach to other
+  experimental designs.
 \end{abstract}
  
 \keywords{gravitational lensing --- cosmology: dark matter} 
 
 \section{Introduction}
 
-{\bf Consider a concise introductory few sentences for strong lensing
-  and gravitational lenses, possibly accompanied by a new simple
-  graphic showing a typical quasar lens, with a ``full'' light curve
-  on top of the source-plane quasar, and the various ``offset'' light
-  curves connected to each of the lensed images but each on top of the
-  other in a set of boxes, so that they are all on the observer's time
-  frame of reference. This should be an easy illustration to put
-  together, would set the tone for the paper for a more general
-  audience (thinking of graduate students for example), and would be a
-great graphic to use for future talks on the topic, so very much worth
-the effort.} 
+Gravitational lensing time delays are a promising tool for measuring
+Hubble's constant \citep[$H_0$;][]{Refsdal1964a} as well as dark
+energy cosmological parameters \citep{Coe2009b,Linder2011a,Treu2013a},
+with compelling complementarity to other techniques
+\citep{Weinberg2013a, Linder2015a}.  Indeed, there is presently
+tension in the value for $H_0$ inferred by the \emph{Planck} cosmic
+microwave background analysis \citep{Planck-Collaboration2014a,
+  Planck-Collaboration2015a}, and the best-determined values derived
+by state of the art modeling of gravitational lenses
+\citep[e.g.][]{Suyu2013a, Suyu2014a}.  Such measurements depend on
+detailed modeling of often complex gravitational environments and
+material along the line of sight \citep[e.g.][]{Greene2013a,
+  Schneider2013a}, but the foundation is the time delay measurement
+itself, which depends on the details of the observational campaign
+timing and duration, and the associated photometric measurements of
+each individual image in a lens. Substantial campaigns have been
+undertaken over the past ten or more years
+\citep[e.g.][]{Eigenbrod2005a, Tewes2013a}, achieving time delay
+precisions of approaching $\sim1$\,day\footnote{See the COSMOGRAIL
+  webpage, http://http://cosmograil.epfl.ch}.  To date, achieving time
+delays with greater precision has been elusive
+\citep[e.g.][]{Oguri2007a}, due in part by the difficulty of
+coordinating observing campaigns with better than approximately
+nightly cadence. However, with cosmological measurement implications
+of much more precise and better-characterized time delays, and their
+potential of being used to infer properties of the dark matter
+substructure expected to be contained within lensing galaxies
+\citep{Keeton2009a}, we are driven to understand how to design and
+analyze observing campaigns that may achieve an order of magnitude
+higher time delay precision than is currently typical. 
 
-Gravitational lensing time delays are a competitive tool for
-cosmological measurements \citep{Coe2009b}, particularly for the
-Hubble constant \citep[$H_0$;][]{Refsdal1964a}.  Indeed, there is
-presently tension in the value for $H_0$ inferred by the recent
-\emph{Planck} cosmic microwave background analysis, and the
-best-determined values derived by state of the art modeling of
-gravitational lenses \citep[e.g.][]{Suyu2013a,Suyu2013b}.  Such
-measurements depend on detailed modeling of often complex
-gravitational environments, but the foundation is the time delay
-estimate itself, which is a quantity that depends on many details of
-the observational campaign timing and duration, and the associated
-photometric measurements of each individual image in a lens. Heroic
-campaigns are required \citep[e.g.][]{Tewes2013a}, followed by
-analysis of the data timestream where the potential effect of
-degenerate or incorrect solutions are ideally identified and
-characterized in advance.
+%Therefore, the challenges in measuring robust time delays may be
+%great, but the payoff has the potential of being great. 
+This motivates us to develop a time delay measurement technique that
+can be used both for analysis of existing data, but also for the
+systematic study of tailored sets of observations and observational
+characteristics, for optimal design of campaigns, tailored to the
+needs of the desired scientific goals. Many techniques for
+\emph{fitting} observations have been explored to date; see the
+discussion in \citet{Dobler2013a} and \citet{Liao2015a}, for a
+detailed review.  
 
-Time delays also have the potential of being used to infer properties
-of the dark matter substructure expected to be contained within
-lensing galaxies \citep{Keeton2009a}.  Exploiting time delays in this
-way requires an order of magnitude higher precision than the current
-typical $\sim1$-day precision measurements, as well as robust
-knowledge of any systematic offset effects, and so the analysis
-challenge is correspondingly greater.  
-
-Therefore, the challenges in measuring robust time delays may be
-great, but the payoff has the potential of being great. This motivates
-us to develop a time delay measurement technique that can be used both
-for analysis of existing data, but also for the systematic study of
-tailored sets of observations and observational characteristics, for
-optimal design of campaigns, tailored to the needs of the desired
-scientific goals. Many techniques for \emph{fitting} observations have
-been explored to date; see the discussion in \citet{Dobler2013a} and
-{\bf TDC1} for a detailed review.  In the context of the long-standing
-COSMOGRAIL efforts to measure time delays in gravitational lenses
-using long-term ground-based campaigns, THISREFERENCE explored the
-influence of various relevant observational choices for time delay
-measurements. {\bf Perhaps say one or two more things about this
-  here.}
+% In the context of the long-standing COSMOGRAIL
+% efforts to measure time delays in gravitational lenses using long-term
+% ground-based campaigns, THISREFERENCE explored the influence of
+% various relevant observational choices for time delay
+% measurements. {\bf Perhaps say one or two more things about this
+%   here.}
 
 In this work, we take advantage of a predictive model for the time
 variations of quasar light curves, to set up a Bayesian inference
