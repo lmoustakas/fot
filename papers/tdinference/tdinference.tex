@@ -46,19 +46,21 @@
   applications, including estimating the Hubble constant, other
   cosmological parameters, or for constraining lens-galaxy structure
   or substructure properties. Quasar's optical light curves have been
-  shown to be described well by a damped random walk behavior. We build
-  a generative model of paired quasar light curves which are offset by
-  a constant delay and magnitude, and build an inference process using
-  the emcee Markov Chain Monte Carlo engine.  With this framework, we
-  explore the problem of designing observational campaigns that will
-  achieve time delay measurements at a specific threshold level.  We
-  apply this approach to a notional \emph{Hubble} Space Telescope
-  lens-monitoring experiment, to determine the observing campaign
-  characteristics and photometric sensitivity that are required to
-  secure a greater than 90\% probability of measuring a 1.5-day time
-  delay to a combined random and systematic precision of better than
-  one hour.  We discuss the extensibility of this approach to other
-  experimental designs.
+  shown to be described well by a damped random walk behavior. We
+  build a generative model of paired quasar light curves which are
+  offset by a constant delay and magnitude, and build an inference
+  process using the emcee Markov Chain Monte Carlo engine.  With this
+  framework, we explore the problem of designing observational
+  campaigns that will achieve time delay measurements at a specific
+  threshold level.  We apply this approach to a notional \emph{Hubble}
+  Space Telescope lens-monitoring experiment, to determine the
+  observing campaign characteristics and photometric sensitivity that
+  are required to secure a greater than 90\% probability of measuring
+  a 1.5-day time delay to a combined random and systematic precision
+  of better than one hour, a more than twenty-fold improvement of what
+  is presently achieved.  We discuss the extensibility of this
+  approach to other experimental designs, including from
+  short-cadence, focused ground-based campaigns. 
 \end{abstract}
  
 \keywords{gravitational lensing --- cosmology: dark matter} 
@@ -74,49 +76,61 @@ tension in the value for $H_0$ inferred by the \emph{Planck} cosmic
 microwave background analysis \citep{Planck-Collaboration2014a,
   Planck-Collaboration2015a}, and the best-determined values derived
 by state of the art modeling of gravitational lenses
-\citep[e.g.][]{Suyu2013a, Suyu2014a}.  Such measurements depend on
-detailed modeling of often complex gravitational environments and
-material along the line of sight \citep[e.g.][]{Greene2013a,
-  Schneider2013a}, but the foundation is the time delay measurement
-itself, which depends on the details of the observational campaign
-timing and duration, and the associated photometric measurements of
-each individual image in a lens. Substantial campaigns have been
-undertaken over the past ten or more years
-\citep[e.g.][]{Eigenbrod2005a, Tewes2013a}, achieving time delay
-precisions of approaching $\sim1$\,day\footnote{See the COSMOGRAIL
-  webpage, http://http://cosmograil.epfl.ch}.  To date, achieving time
+\citep[e.g.][]{Suyu2013a, Suyu2014a}.
+
+Such measurements depend on detailed modeling of often complex
+gravitational environments and material along the line of sight
+\citep[e.g.][]{Greene2013a, Schneider2013a}, but the foundation is the
+time delay measurement itself, which depends on the details of the
+observational campaign timing and duration, and the associated
+photometric measurements of each individual image in a
+lens. Substantial campaigns have been undertaken over the past ten or
+more years \citep[e.g.][]{Eigenbrod2005a, Tewes2013a}, achieving time
+delay precisions of approaching $\sim1$\,day\footnote{COSMOGRAIL
+  webpage, http://http://cosmograil.org}.  To date, achieving time
 delays with greater precision has been elusive
 \citep[e.g.][]{Oguri2007a}, due in part by the difficulty of
 coordinating observing campaigns with better than approximately
-nightly cadence. However, with cosmological measurement implications
-of much more precise and better-characterized time delays, and their
-potential of being used to infer properties of the dark matter
-substructure expected to be contained within lensing galaxies
-\citep{Keeton2009a}, we are driven to understand how to design and
-analyze observing campaigns that may achieve an order of magnitude
-higher time delay precision than is currently typical. 
+nightly cadence.
 
-%Therefore, the challenges in measuring robust time delays may be
-%great, but the payoff has the potential of being great. 
+However, with cosmological measurement implications of much more
+precise and better-characterized time delays, and their potential of
+being used to infer properties of the dark matter substructure
+expected to be contained within lensing galaxies
+\citep[e.g.][]{Primack2009a, Xu2009a}, we are driven to understand how
+to design and analyze observing campaigns that may achieve an order of
+magnitude higher time delay precision than is currently typical
+\citep{Keeton2009a, Linder2011a}.
+
 This motivates us to develop a time delay measurement technique that
 can be used both for analysis of existing data, but also for the
 systematic study of tailored sets of observations and observational
 characteristics, for optimal design of campaigns, tailored to the
 needs of the desired scientific goals. Many techniques for
 \emph{fitting} observations have been explored to date; see the
-discussion in \citet{Dobler2013a} and \citet{Liao2015a}, for a
+discussion in \citet{Dobler2015a} and \citet{Liao2015a}, for a
 detailed review.  
 
-% In the context of the long-standing COSMOGRAIL
-% efforts to measure time delays in gravitational lenses using long-term
-% ground-based campaigns, THISREFERENCE explored the influence of
-% various relevant observational choices for time delay
-% measurements. {\bf Perhaps say one or two more things about this
-%   here.}
+Since the measurement of the time delay in the first strong
+gravitational lens discovered, Q0957$+$561 \citep{Walsh1979a,
+  Press1999a}, there have been many significant efforts to
+systematically monitor time domain variations in multiply imaged
+quasars, particularly in radio \citep[e.g.][]{Fassnacht1999a} and
+optical wavelengths \citep[c.f.\ compilations in][]{Oguri2007a,
+  Mosquera2011a}.  The near future shows great potential for both vast
+numbers of poorly-measured time delays (with the Large Synoptic Survey
+Telescope), and for exquisitely-measured time delays (e.g.\ using
+focused Las Cumbres Observatory Global Telescope campaigns, the
+\emph{Hubble} Space Telescope, or another space-based platform such as
+the proposed Observatory for Multi-Epoch Gravitational Lens
+Astrophysics, e.g.\ \citealt{Moustakas2009a}). In either scenario, we
+wish to be in a position where one may determine precisely how to
+achieve a \emph{desired} time delay precision with a specific level of
+certainty.
 
 In this work, we take advantage of a predictive model for the time
 variations of quasar light curves, to set up a Bayesian inference
-framework.  These are developed in Section~\ref{sec:tdanalysis}, based
+framework.  This is developed in Section~\ref{sec:tdanalysis}, based
 on descriptions of simulated quasar light curve pairs for particular
 observational conditions.  A notional experimental design is explored
 in detail in Section~\ref{sec:experiment}, to demonstrate our
@@ -124,7 +138,7 @@ framework's application to achieving a desired time delay precision at
 a high confidence of success.  We discuss the results, and extensions
 of this methodology to other experiments in
 Section~\ref{sec:discussion}.  All code is written in python, version
-controlled via the github repository, and is available upon request.
+controlled via a github repository.
 
 \section{Inference Analysis Framework}\label{sec:tdanalysis}
 
@@ -133,11 +147,12 @@ variability in these types of objects has been shown to be consistent
 with a damped random walk process, where the fluctuations have a
 characteristic amplitude and decay time that correlate with the black
 hole mass and luminosity \citep{Kelly2009a}.  We will call these the
-``light curve structure parameters'' in the discussion that
-follows. 
-The damped random walk parameters that describe a quasar light 
-curve are an average magnitude $\langle m \rangle$ , its short time variability $\sigma$, in units of mag day$^{-1/2}$
-and its relaxation time $\tau$ in days. Given a magnitude $x_i$ at time $t_i$, a point $x_{i+1}$ at time $t_{i+1}$ is given by
+``light curve structure parameters'' in the discussion that follows.
+The damped random walk parameters that describe a quasar light curve
+are an average magnitude $\langle m \rangle$ , its short time
+variability $\sigma$, in units of mag day$^{-1/2}$ and its relaxation
+time $\tau$ in days. Given a magnitude $x_i$ at time $t_i$, a point
+$x_{i+1}$ at time $t_{i+1}$ is given by
 \begin{equation}
 \begin{split}
 x_{i+1}&  =  \langle m \rangle  \\
@@ -163,20 +178,22 @@ The dependence of the quasar light curve parameters $\sigma$ and $\tau$ on its b
 % L(t)=f(\sigma,\tau,m).\label{eq:lightcurve}
 % \end{equation}
 
-The behavior is likely
-driven by stochastic thermal processes in their accretion disks, but
-for our purposes what matters most is the model prescription, so we
-can use a Bayesian inference approach to connect the model parameters,
-{\bf m} to the data observables {\bf d}.
+The behavior is likely driven by stochastic thermal processes in their
+accretion disks, but for our purposes what matters most is the model
+prescription, so we can use a Bayesian inference approach to connect
+the model parameters, {\bf m} to the data observables {\bf d}.
 \begin{equation}
 p({\mathbf m} | {\mathbf d}) = 
-{{p({\mathbf d} | {\mathbf m})p({\mathbf m})}
+{{p({\mathbf d} | {\mathbf m})\, p({\mathbf m})}
 \over{p({\mathbf  d})}}. \nonumber 
 \end{equation}
-In our application {\bf d} is a collection of observed magnitudes ${x_{i}}$ with 
-photometric uncertainties $\sigma_i$ at times ${t_i}$. We denote the set of data values by $X=\{(t_i,x_i,\sigma_i)\}$. The model parameters {\bf m} are 
-the quasar parameters ($\langle m~\rangle$,~$\sigma$,~$\tau$). The probability distribution 
-$p({\mathbf d} | {\mathbf m})$ corresponding to the light curve model given by Equation~\ref{eq:generative}, 
+In our application {\bf d} is a collection of observed magnitudes
+${x_{i}}$ with photometric uncertainties $\sigma_i$ at times
+${t_i}$. We denote the set of data values by
+$X=\{(t_i,x_i,\sigma_i)\}$. The model parameters {\bf m} are the
+quasar parameters ($\langle m\rangle$,~$\sigma$,~$\tau$). The
+probability distribution $p({\mathbf d} | {\mathbf m})$ corresponding
+to the light curve model given by Equation~\ref{eq:generative},
 % given by \citet{Kelly2009a}, 
 is 
 \begin{equation} 
