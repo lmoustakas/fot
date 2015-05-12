@@ -1,0 +1,111 @@
+
+SIMULATION PARAMETERS
+Namespace(avg_mag=19.0, delay=1.5, delta_mag=0.3, numorbits=80, outputtag='hubble_sim_r211', photometricerror=0.1, redshift=0.658, sigma=0.07, tau=121.0)
+
+Process Started on 2014-04-06 23:33:16.337456
+The output_tag for this run is: hubble_sim_r211_2014_04_06_23:33
+
+CRUDE LIGHT CURVE PARAMETERS
+----------------------------
+parameter lc1   	lc2
+----------------------------
+sigma     +0.74 	+0.47
+tau       +0.01 	+0.04
+avg_mag   +18.83 	+19.10
+
+
+BEGINNING LIGHT CURVE PARAMETER OPTIMIZATION
+
+Optimization terminated successfully.
+         Current function value: -534.935805
+         Iterations: 56
+         Function evaluations: 108
+Optimization terminated successfully.
+         Current function value: -571.693495
+         Iterations: 146
+         Function evaluations: 265
+
+OPTIMIZED LIGHT CURVE PARAMETERS
+--------------------------------
+parameter lc1   	lc2
+--------------------------------
+sigma     +0.00 	+0.04
+tau       +0.02 	+2.21
+avg_mag   +18.83 	+19.12
+
+
+Process Started on 2014-04-06 23:33:16.337456
+It is now          2014-04-06 23:33:18.660376
+
+time series is 5.00 days long
+with  217 data points
+The most common sample time distance is 0.01 days within the range of [0.01,0.01] days
+
+1% done
+10% done
+25% done
+50% done
+75% done
+DONE
+
+Process Started on 2014-04-06 23:33:16.337456
+It is now          2014-04-06 23:33:19.696625
+
+BEST DELAY=1.29751e+00
+
+INITIAL PARAMETERS (average of lc1 and lc2)
+-------------------------------------------
+delay      = 1.30
+delta_mag  = 0.29
+avg_mag    = 18.83
+tau        = 1.11
+sigma      = 0.02
+
+Optimization terminated successfully.
+         Current function value: -1153.063780
+         Iterations: 138
+         Function evaluations: 253
+
+INITIAL PARAMETERS (optimization of merged light curve)
+-------------------------------------------------------
+delay      = 1.30
+delta_mag  = 0.29
+avg_mag    = 18.84
+tau        = 2.77
+sigma      = 0.04
+
+
+-------------
+RUNNING EMCEE
+-------------
+
+pos
+sampler
+Process Started on 2014-04-06 23:33:16.337456
+It is currently    2014-04-06 23:33:23.956168
+burn-in sampler.run_mcmc
+	Mean acceptance fraction: 0.595
+	Errors based on 16th, 50th, and 84th percentile
+	Param     	MC_rec	err_up	err_low
+	delay     	1.40e+00	+1.48e-01	-1.58e-01
+	delta_mag 	2.96e-01	+1.01e-02	-1.00e-02
+	sigma     	4.34e-02	+7.80e-03	-8.50e-03
+	tau       	2.76e+00	+6.50e-01	-5.47e-01
+	avg_mag   	1.88e+01	+2.71e-02	-2.68e-02
+Process Started on 2014-04-06 23:33:16.337456
+It is currently    2014-04-06 23:35:53.065928
+sampler.run_mcmc
+Process Started on 2014-04-06 23:33:16.337456
+It is currently    2014-04-06 23:50:58.315655
+sampler.chain
+90000
+Mean acceptance fraction: 0.511
+Errors based on 16th, 50th, and 84th percentile
+Param     	MC_rec	err_up	err_low
+delay     	1.48e+00	+1.62e-01	-1.55e-01
+delta_mag 	3.00e-01	+9.72e-03	-9.23e-03
+sigma     	3.88e-02	+7.81e-03	-6.30e-03
+tau       	1.04e+01	+1.04e+01	-6.40e+00
+avg_mag   	1.88e+01	+5.58e-02	-4.97e-02
+Process Started on 2014-04-06 23:33:16.337456
+It is currently    2014-04-06 23:51:04.939184
