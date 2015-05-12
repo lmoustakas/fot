@@ -1,0 +1,41 @@
+
+SIMULATION PARAMETERS
+Namespace(avg_mag=19.0, delay=1.5, delta_mag=0.3, numorbits=40, outputtag='hubble_sim_r1036', photometricerror=0.02, redshift=0.658, sigma=0.07, tau=121.0)
+
+Process Started on 2014-04-07 01:43:49.326411
+The output_tag for this run is: hubble_sim_r1036_2014_04_07_01:43
+
+CRUDE LIGHT CURVE PARAMETERS
+----------------------------
+parameter lc1   	lc2
+----------------------------
+sigma     +0.16 	+0.38
+tau       +0.37 	+0.03
+avg_mag   +18.77 	+19.10
+
+
+BEGINNING LIGHT CURVE PARAMETER OPTIMIZATION
+
+Optimization terminated successfully.
+         Current function value: -602.144078
+         Iterations: 90
+         Function evaluations: 167
+Optimization terminated successfully.
+         Current function value: -604.399243
+         Iterations: 108
+         Function evaluations: 199
+
+OPTIMIZED LIGHT CURVE PARAMETERS
+--------------------------------
+parameter lc1   	lc2
+--------------------------------
+sigma     +0.06 	+0.05
+tau       +0.21 	+1.12
+avg_mag   +18.77 	+19.09
+
+
+Process Started on 2014-04-07 01:43:49.326411
+It is now          2014-04-07 01:43:50.067242
+
+time series is 2.50 days long
+with  115 data points

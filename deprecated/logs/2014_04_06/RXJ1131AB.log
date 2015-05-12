@@ -1,0 +1,107 @@
+Process Started on 2014-04-06 15:07:32.396181
+The output_tag for this run is: RXJ1131AB_2014_04_06_15:07
+
+CRUDE LIGHT CURVE PARAMETERS
+----------------------------
+parameter lc1   	lc2
+----------------------------
+sigma     +0.28 	+0.18
+tau       +1960.36 	+345.26
+avg_mag   -13.05 	-12.54
+
+
+BEGINNING LIGHT CURVE PARAMETER OPTIMIZATION
+
+Optimization terminated successfully.
+         Current function value: -2996.652074
+         Iterations: 160
+         Function evaluations: 302
+Optimization terminated successfully.
+         Current function value: -2247.877969
+         Iterations: 167
+         Function evaluations: 312
+
+OPTIMIZED LIGHT CURVE PARAMETERS
+--------------------------------
+parameter lc1   	lc2
+--------------------------------
+sigma     +0.02 	+0.02
+tau       +1563.94 	+289.56
+avg_mag   -12.93 	-12.59
+
+
+Process Started on 2014-04-06 15:07:32.396181
+It is now          2014-04-06 15:07:50.326192
+
+time series is 3086.68 days long
+with  707 data points
+The most common sample time distance is 2.67 days within the range of [1.61,4.42] days
+
+1% done
+10% done
+25% done
+50% done
+75% done
+DONE
+
+Process Started on 2014-04-06 15:07:32.396181
+It is now          2014-04-06 15:08:10.392361
+
+BEST DELAY=1.76661e+02
+
+INITIAL PARAMETERS (average of lc1 and lc2)
+-------------------------------------------
+delay      = 176.66
+delta_mag  = 0.34
+avg_mag    = -12.93
+tau        = 926.75
+sigma      = 0.02
+
+Optimization terminated successfully.
+         Current function value: 378.472109
+         Iterations: 166
+         Function evaluations: 306
+
+INITIAL PARAMETERS (optimization of merged light curve)
+-------------------------------------------------------
+delay      = 176.66
+delta_mag  = 0.34
+avg_mag    = -13.00
+tau        = 5.87
+sigma      = 0.28
+
+
+-------------
+RUNNING EMCEE
+-------------
+
+pos
+sampler
+Process Started on 2014-04-06 15:07:32.396181
+It is currently    2014-04-06 15:08:28.364210
+burn-in sampler.run_mcmc
+	Mean acceptance fraction: 0.489
+	Errors based on 16th, 50th, and 84th percentile
+	Param     	MC_rec	err_up	err_low
+	delay     	1.77e+02	+2.23e-02	-9.61e-03
+	delta_mag 	3.87e-01	+1.46e-02	-2.17e-02
+	sigma     	2.53e-01	+7.21e-03	-6.96e-03
+	tau       	6.03e+00	+1.45e-01	-9.82e-02
+	avg_mag   	-1.30e+01	+2.61e-02	-3.51e-02
+Process Started on 2014-04-06 15:07:32.396181
+It is currently    2014-04-06 15:20:12.493380
+sampler.run_mcmc
+Process Started on 2014-04-06 15:07:32.396181
+It is currently    2014-04-06 16:49:30.802742
+sampler.chain
+90000
+Mean acceptance fraction: 0.475
+Errors based on 16th, 50th, and 84th percentile
+Param     	MC_rec	err_up	err_low
+delay     	1.77e+02	+4.28e-03	-1.81e-02
+delta_mag 	4.01e-01	+8.31e-03	-8.04e-03
+sigma     	2.42e-01	+4.05e-03	-3.94e-03
+tau       	7.56e+00	+4.83e-01	-4.78e-01
+avg_mag   	-1.30e+01	+2.31e-02	-2.32e-02
+Process Started on 2014-04-06 15:07:32.396181
+It is currently    2014-04-06 16:49:36.959983
