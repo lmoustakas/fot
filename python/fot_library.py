@@ -427,7 +427,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   nwalkers = 100
   #nwalkers = 10 # minimum possible number of walkers
   n_burn_in_iterations = 100
-  n_iterations = 100000
+  n_iterations = 4000
  
   print 'pos'
   poly_prior = 0.*arange(poly+1, dtype=float64)
