@@ -14,7 +14,7 @@ Let us set the environment variable FOTDIR to the local location of the reposito
 '''
 import matplotlib
 # comented line below because it interferes with the ability to run and plot test functions using this library
-#matplotlib.use('Agg') # Note, this MUST be before importing pylab or matplotlib.pyplot
+matplotlib.use('Agg') # Note, this MUST be before importing pylab or matplotlib.pyplot
 from pylab import *
 from scipy.optimize import curve_fit
 
@@ -427,7 +427,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   nwalkers = 100
   #nwalkers = 10 # minimum possible number of walkers
   n_burn_in_iterations = 100
-  n_iterations = 4000
+  n_iterations = 10000
  
   print 'pos'
   poly_prior = 0.*arange(poly+1, dtype=float64)
@@ -456,14 +456,16 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   #pos = [true_vals + [10**mode*r[0], 0.1*delta_mag*r[1], abs((sigma*r[2]+sigma)), ] for i in range(nwalkers)]
   print 'sampler'
   sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(t, lc1, e1, lc2, e2))
-  print 'Process Started on', t0
+
+  print '\nProcess Started on', t0
   print 'It is currently   ', datetime.datetime.now()
   print 'burn-in sampler.run_mcmc'
-  #sampler.run_mcmc(pos, 500)
-  sampler.run_mcmc(pos, n_burn_in_iterations)
+  #print 'pos', pos
+  pos, prob, state = sampler.run_mcmc(pos, n_burn_in_iterations)
 
   samples = sampler.chain[:, int(0.5*float(n_burn_in_iterations)):, :].reshape((-1, ndim))
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+  print("\tAutocorrelation time: {0:.3f}", sampler.get_autocorr_time())
   mc_vals = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   #mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   print '\tErrors based on 16th, 50th, and 84th percentile'
@@ -519,7 +521,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 
     
   fig.savefig(outputdir+"burn_in_triangle_%s.png"%(output_tag))
-  
+  print outputdir+"burn_in_triangle_%s.png"%(output_tag)
 
   sampler.reset()
   
@@ -549,6 +551,7 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
   print ''
   '''
   print("\tMean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+  print("\tAutocorrelation time:", sampler.get_autocorr_time())
   mc_vals = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   #mc_delay, mc_delta_mag, mc_sigma, mc_log10_tau, mc_avg_mag = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), zip(*np.percentile(samples, [16, 50, 84],axis=0)))
   print '\tErrors based on 16th, 50th, and 84th percentile'
