@@ -61,7 +61,7 @@ for num_orbits in num_orbits_list:
 	output_tag = 'hubble_sim_%d_orbits_%1.2f_pu_r%d'%(num_orbits,photometric_uncertainty,k)
 	output_tag = output_tag.replace('.','p')
 	log_fname = '%s.log'%(output_tag)
-	com = './fot_hubble_sim.py -dt %1.5f -dtp %1.5f -dtpmin %1.5f -dtpmax %1.5f -dm %1.5f -dmp %1.5f -dmpmin %1.5f -dmpmax %1.5f -s %1.5f -sp %1.5f -spmin %1.5f -spmax %1.5f -t %1.5f -tp %1.5f -tpmin %1.5f -tpmax %1.5f -m %1.5f -mp %1.5f -mpmin %1.5f -mpmax %1.5f -z %1.5f -p %1.5f -n %d -o %s > %s &'%(delay, delay_prior, delay_prior_min, delay_prior_max, delta_mag, delta_mag_prior, delta_mag_prior_min, delta_mag_prior_max, sigma, sigma_prior, sigma_prior_min, sigma_prior_max, tau, tau_prior, tau_prior_min, tau_prior_max, avg_mag, avg_mag_prior, avg_mag_prior_min, avg_mag_prior_max, redshift, photometric_uncertainty, num_orbits, output_tag, log_fname)
+	com = './fot_hubble_sim.py -dt %1.5f -dtp %1.5f -dtpmin %1.5f -dtpmax %1.5f -dm %1.5f -dmp %1.5f -dmpmin %1.5f -dmpmax %1.5f -s %1.5f -sp %1.5f -spmin %1.5f -spmax %1.5f -t %1.5f -tp %1.5f -tpmin %1.5f -tpmax %1.5f -m %1.5f -mp %1.5f -mpmin %1.5f -mpmax %1.5f -z %1.5f -p %1.5f -n %d -o %s > ../outputs/%s &'%(delay, delay_prior, delay_prior_min, delay_prior_max, delta_mag, delta_mag_prior, delta_mag_prior_min, delta_mag_prior_max, sigma, sigma_prior, sigma_prior_min, sigma_prior_max, tau, tau_prior, tau_prior_min, tau_prior_max, avg_mag, avg_mag_prior, avg_mag_prior_min, avg_mag_prior_max, redshift, photometric_uncertainty, num_orbits, output_tag, log_fname)
 	run_queue(njobs,com)	
 
 
