@@ -10,7 +10,6 @@ d) calculating the time delays and light curve structure parameters through Baye
 
 This is the central library of functions. 
 
-Let us set the environment variable FOTDIR to the local location of the repository. 
 '''
 import matplotlib
 # comented line below because it interferes with the ability to run and plot test functions using this library
@@ -211,14 +210,15 @@ def kelly_delay_ll(theta, time_array, flux_array1, ph_err_array1, flux_array2, p
 def emcee_lightcurve_estimator(t, lc1, e1, output_tag, 
 			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
 			  tau_prior,       tau_prior_min,       tau_prior_max, 
-			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max):
+			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max,
+			  outputdir = './'):
   # time tage the output file name
-  outputdir=os.environ['FOTDIR']+'/outputs/'
+  # outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
-  date_string = t0.strftime("_%Y_%m_%d_%H:%M")
+  #date_string = t0.strftime("_%Y_%m_%d_%H:%M")
   #print date_string
-  output_tag = ''.join([output_tag,date_string ])
+  #output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
 
   #convert from linear scale tau to log tau
@@ -368,14 +368,14 @@ def emcee_delay_estimator(t, lc1, e1, lc2, e2, output_tag,
 			  sigma_prior,     sigma_prior_min,     sigma_prior_max,
 			  tau_prior,       tau_prior_min,       tau_prior_max, 
 			  avg_mag_prior,   avg_mag_prior_min,   avg_mag_prior_max,
-			  poly = 0):
+			  poly = 0, outputdir = './'):
   # append time to output tag.
-  outputdir=os.environ['FOTDIR']+'/outputs/'
+  # outputdir=os.environ['FOTDIR']+'/outputs/'
   t0 = datetime.datetime.now()
   print 'Process Started on', t0
-  date_string = t0.strftime("_%Y_%m_%d_%H:%M")
+  #date_string = t0.strftime("_%Y_%m_%d_%H:%M")
   #print date_string
-  output_tag = ''.join([output_tag,date_string ])
+  #output_tag = ''.join([output_tag,date_string ])
   print 'The output_tag for this run is:', output_tag
 
   #convert from linear scale tau to log tau
