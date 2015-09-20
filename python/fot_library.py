@@ -137,8 +137,7 @@ def kelly_ll(theta, time_array, flux_array, ph_err_array):
   x=flux_array
   t=time_array
   x_hat, err = kelly_estimates(theta, time_array, flux_array, ph_err_array)
-  x_star=x-avg_mag
-  ll = np.sum( -0.5*((x_hat-x_star)**2 / (err**2)) - 0.5*np.log(2*np.pi*(err**2)))  #ph_err_array*=0.
+  ll = np.sum( -((x_hat-x_star)**2 / (err**2)) - np.log(2*np.pi*(err**2)))  #ph_err_array*=0.
   return ll
 
 def hojjati_ll(time_array, flux_array, ph_err_array, sig, tau, b):
@@ -869,3 +868,4 @@ def remove_outliers(_t,_m1, _m2, _em1, _em2, display = False):
     errorbar(_t,_m2,yerr=_em2, fmt='g+')
     show()
   return _t, _m1, _m2, _em1, _em2
+
